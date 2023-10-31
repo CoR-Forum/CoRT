@@ -82,13 +82,13 @@ __i18n__ = {
 	{
 		"fr": "Dernière apparition",
 		"es": "Última reaparición",
-		"de": "Letzter Auftritt"
+		"de": "Letzter Spawn"
 	},
 	"Next respawn in":
 	{
 		"fr": "Prochaine apparition dans",
 		"es": "Próxima aparición en",
-		"de": "Nächster Auftritt in"
+		"de": "Nächster Spawn in"
 	},
 	"should appear very soon!":
 	{
@@ -403,7 +403,7 @@ __i18n__ = {
 	"Last event:": {
 		"fr": "Dernier événement :",
 		"es": "Último evento:",
-		"de": "Letzte Veranstaltung:"
+		"de": "Letzter Eintrag:"
 	},
 	"Last %s days": {
 		"fr": "Les %s derniers jours",
