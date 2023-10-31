@@ -310,7 +310,7 @@ __i18n__ = {
 	{
 		"fr": "Ce lien partagé est mauvais. J'abandonne, désolé !",
 		"es": "Este enlace compartido es malo. ¡Me doy por vencido, lo siento!",
-		"de": "Dieser geteilte Link ist schlecht. Ich gebe auf, sorry!"
+		"de": "Der geteilte Link ist ungültig. Ich gebe auf, sorry!"
 	},
 	"Copy link":
 	{
@@ -538,7 +538,7 @@ __i18n__ = {
 	"Realms": {
 		"fr": "Royaumes",
 		"es": "Reinos",
-		"de": "Realms"
+		"de": "Reiche"
 	},
 	"Forts": {
 		"fr": "Forts",
