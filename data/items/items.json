@@ -64,20 +64,6 @@
     
         },
         {
-            "id": 828,
-            "name_en": "Aquantis Egg",
-            "name_de": "Aquantis Ei",
-            "name_es": "Examplus de Item (Spanish)",
-            "class": "normal",
-            "icon_url": "51443.png",
-            "quantity":"100",
-            "uses":"100",
-            "weight":"0.05",
-            "sellprice_gold":"0",
-            "sellprice_ximerin":"0"
-    
-        },
-        {
             "name_en": "Ancestral Staff",
             "name_de": "",
             "name_es": "",
