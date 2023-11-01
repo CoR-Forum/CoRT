@@ -9,6 +9,7 @@ let menu = `
 		<span class="menuitem"><b><a href="./">🏫${_("Trainer")}</a></b></span>
 		<span class="menuitem"><b><a href="wz.html">🪓${_("WZ status")}</a></b></span>
 		<span class="menuitem"><b><a href="bosses.html">👾${_("Bosses status")}</a></b></span>
+		<span class="menuitem"><b><a href="items.html">👾${_("Items")}</a></b></span>
 		<span class="menuitem"><b><a href="bz.html">🏟${_("BZ status")}</a></b></span>
 		<span class="menuitem"><b><a href="wstats.html">📊${_("WZ statistics")}</a></b></span>
 		<span class="menuitem"><b><a href="wevents.html">🗓️${_("WZ events")}</a></b></span>
