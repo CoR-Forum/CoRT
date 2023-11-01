@@ -37,6 +37,11 @@ function refresh_display() {
 				html += `<td>${item.profession} ${item.level}</td>`;
 				html += `<td>${item.category}</td>`;
 				html += `<td>${item.weight} Kgs</td>`;
+				html += `<td>`;
+				if (item.bonus1) {html += `+${item.bonus1} ${item.bonus1_type_en}<br>`};
+				if (item.gemsocket) {html += `${item.gemsocket} Empty Sockets`};
+				html += `</td>`;
+
 
 
 		});
@@ -48,4 +53,3 @@ function refresh_display() {
 		.catch(error => console.error(error));
 }
 
-// q: how do I get the data from json items -> damage -> piercing? 
