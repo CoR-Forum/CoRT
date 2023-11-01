@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Champions of Regnum bosses respawn</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses boss respawn spawn war guerra status">
+		<meta name="description" content="Champions of Regnum trainer, war status, bosses respawn and bz countdowns">
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="icon" type="image/png" href="favicon.png" />
+		<script type="text/javascript" src="js/unsupported.js"></script>
+		<script type="text/javascript" src="js/api_url.js"></script>
+		<script type="text/javascript" src="js/browserquirks.js"></script>
+		<script type="text/javascript" src="js/lamaiquery.js"></script>
+		<script type="text/javascript" src="data/i18n.json"></script>
+		<script type="text/javascript" src="js/i18n.js"></script>
+		<script type="text/javascript" src="js/notify.js"></script>
+		<script type="text/javascript" src="js/items.js"></script>
+		<script type="text/javascript" src="js/menu.js"></script>
+	</head>
+	<body>
+	<div id="main-container">
+		<div id="menu" class="card"></div>
+		<div class="bugnum but on your side">
+			<noscript>
+				For full functionality of this site it is necessary to enable JavaScript.
+				Here are the <a href="https://www.enable-javascript.com/">
+					instructions how to enable JavaScript in your web browser</a>.
+			</noscript>
+		</div>
+        <h1 id="title"></h1>
+
+        <style>
+        #items-container {
+            display: flex;
+            justify-content: center;
+            text-align: center; /* add this line */
+        }
+        #items-container table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 1px solid #ddd;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 1000px;
+        }
+        #name {
+            min-width: 200px;
+        }
+        </style>
+        <div id="items-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th id="name"></th>
+                        <th id="damage"></th>
+                        <th id="range"></th>
+                        <th id="attack_speed"></th>
+                        <th id="requires"></th>
+                        <th id="category"></th>
+                        <th id="weight"></th>
+                    </tr>
+                </thead>
+                <tbody id="items"></tbody>
+            </table>
+        </div>
+    </div>
+	<div id="footer" class="card"></div>
+	</body>
+</html>
