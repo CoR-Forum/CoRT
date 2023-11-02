@@ -8,7 +8,7 @@ $(document).ready(function() {
 	$("#requires").text(_("Requires"));
 	$("#category").text(_("Category"));
 	$("#weight").text(_("Weight"));
-
+	$("#bonus").text(_("Bonus"));
 
 	refresh_display();
 });
@@ -32,9 +32,9 @@ function refresh_display() {
 				if (item.damage_ice) {html += `<td><img src="data/items/icons/dmg_ice.png" width="14px" /> ${item.damage_ice}`};
 				if (item.damage_bonus) {html += ` (+${item.damage_bonus})`};
 				html += `</td>`;
-				html += `<td>${item.range}m</td>`;
+				html += `<td>${item.range}</td>`;
 				html += `<td>${item.attack_speed}</td>`;
-				html += `<td>${item.profession} ${item.level}</td>`;
+				html += `<td>${item.profession} (${item.level})</td>`;
 				html += `<td>${item.category}</td>`;
 				html += `<td>${item.weight} Kgs</td>`;
 				html += `<td>`;
@@ -53,3 +53,27 @@ function refresh_display() {
 		.catch(error => console.error(error));
 }
 
+function searchTable(inputId, tableId) {
+	// Declare variables
+	var input, filter, table, tr, td, i, txtValue;
+	input = document.getElementById(inputId);
+	filter = input.value.toUpperCase();
+	table = document.getElementById(tableId);
+	tr = table.getElementsByTagName("tr");
+
+	// Loop through all table rows, and hide those who don't match the search query
+	for (i = 0; i < tr.length; i++) {
+		td = tr[i].getElementsByTagName("td");
+		for (var j = 0; j < td.length; j++) {
+			if (td[j]) {
+				txtValue = td[j].textContent || td[j].innerText;
+				if (txtValue.toUpperCase().indexOf(filter) > -1) {
+					tr[i].style.display = "";
+					break;
+				} else {
+					tr[i].style.display = "none";
+				}
+			}
+		}
+	}
+}
