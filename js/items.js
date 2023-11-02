@@ -22,8 +22,8 @@ function refresh_display() {
 			let html = '<tbody>';
 			items.forEach(item => {
 				let totalDamage = (item.damage_piercing + item.damage_bonus);
-				html += `<tr>
-				<td style="display: flex; align-items: center;text-align:center;"><img src="data/items/icons/${item.icon_url}" width="40px" style="padding-right:10px;" /> ${item.name_en}</td>`
+				html += `<tr><td><img src="data/items/icons/${item.icon_url}" width="40px" style="padding-right:10px;" /> </td>`;
+				html += `<td style="">${item.name_en}</td>`
 				if (item.damage_piercing) {html += `<td><img src="data/items/icons/dmg_piercing.png" width="14px" /> ${item.damage_piercing}`};
 				if (item.damage_blunt) {html += `<td><img src="data/items/icons/dmg_blunt.png" width="14px" /> ${item.damage_blunt}`};
 				if (item.damage_slashing) {html += `<td><img src="data/items/icons/dmg_slashing.png" width="14px" /> ${item.damage_slashing}`};

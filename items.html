@@ -52,13 +52,15 @@
             padding-bottom: 5px;
         }
         #name {
-            min-width: 200px;
+            min-width: 300px;
+            
         }
         </style>
         <div id="items-container">
             <table>
                     <thead>
                             <tr>
+                                    <th id="icon"></th>
                                     <th id="name"></th>
                                     <th id="damage"></th>
                                     <th id="range"></th>
@@ -69,6 +71,7 @@
                                     <th id="bonus"></th>
                             </tr>
                             <tr>
+                                    <th></th>
                                     <th><input type="text" id="nameSearch" onkeyup="searchTable('nameSearch', 'items')"></th>
                                     <th><input type="text" id="damageSearch" onkeyup="searchTable('damageSearch', 'items')"></th>
                                     <th><input type="text" id="rangeSearch" onkeyup="searchTable('rangeSearch', 'items')"></th>
