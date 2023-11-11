@@ -55,7 +55,7 @@
         </style>
         <div id="items-container">
             <table>
-                    <thead>
+                    <thead class="card">
                             <tr>
                                     <th id="icon"></th>
                                     <th id="name"></th>
@@ -72,9 +72,29 @@
                                     <th><input type="text" id="nameSearch" onkeyup="searchTable('nameSearch', 'items')"></th>
                                     <th><input type="text" id="damageSearch" onkeyup="searchTable('damageSearch', 'items')"></th>
                                     <th><input type="text" id="rangeSearch" onkeyup="searchTable('rangeSearch', 'items')"></th>
-                                    <th><input type="text" id="attackSpeedSearch" onkeyup="searchTable('attackSpeedSearch', 'items')"></th>
-                                    <th><input type="text" id="requiresSearch" onkeyup="searchTable('requiresSearch', 'items')"></th>
-                                    <th><input type="text" id="categorySearch" onkeyup="searchTable('categorySearch', 'items')"></th>
+                                    <th>
+                                        <select id="attackSpeedSearch" onchange="searchTable('attackSpeedSearch', 'items')" multiple>
+                                            <option value="" selected>All</option>
+                                            <option value="fast">Fast</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="slow">Slow</option>
+                                        </select>
+                                    </th>
+                                    <th>
+                                        <select id="requiresSearch" onchange="searchTable('requiresSearch', 'items')" multiple>
+                                            <option value="" selected>All</option>
+                                            <option value="Mage">Mage</option>
+                                            <option value="Archer">Archer</option>
+                                            <option value="Barbarian">Barbarian</option>
+                                        </select>
+                                    </th>
+                                    <th>
+                                        <select id="categorySearch" onchange="searchTable('categorySearch', 'items')" multiple>
+                                            <option value="" selected>All</option>
+                                            <option value="Weapon">Weapon</option>
+                                            <option value="Armor">Armor</option>
+                                        </select>
+                                    </th>
                                     <th><input type="text" id="weightSearch" onkeyup="searchTable('weightSearch', 'items')"></th>
                                     <th><input type="text" id="bonusSearch" onkeyup="searchTable('bonusSearch', 'items')"></th>
                             </tr>
@@ -86,3 +106,5 @@
 	<div id="footer" class="card"></div>
 	</body>
 </html>
+
+
