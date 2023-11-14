@@ -68,7 +68,15 @@
                                     <th id="bonus"></th>
                             </tr>
                             <tr>
-                                    <th></th>
+                                <th>
+                                    <select id="itemcategorySearch" onchange="searchTable('itemcategorySearch', 'items')" multiple>
+                                        <option value="" selected>All</option>
+                                        <option value="magna">Magnanite Weapon</option>
+                                        <option value="dragon">Dragon</option>
+                                    </select>
+
+
+                                </th>
                                     <th><input type="text" id="nameSearch" onkeyup="searchTable('nameSearch', 'items')"></th>
                                     <th><input type="text" id="damageSearch" onkeyup="searchTable('damageSearch', 'items')"></th>
                                     <th><input type="text" id="rangeSearch" onkeyup="searchTable('rangeSearch', 'items')"></th>
