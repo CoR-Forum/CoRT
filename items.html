@@ -52,7 +52,64 @@
             min-width: 300px;
             
         }
+
+        @font-face {
+	font-family: "Candara Regular";
+	src: url("//api.cor-forum.de/Candara Regular.ttf") format("truetype");
+}
+item-window {
+	font-family: "Candara Regular", monospace;
+	font-size: 13px;
+	color: white;
+	text-shadow: 1px 1px 1px black;
+	display: inline-block;
+	line-height: 18px;
+	min-width: 250px;
+}
+tooltip {
+	min-width: 200px;
+}
+borderbox {
+	background: #131A23;
+	border: 1px solid #4C4D4D;
+	border-radius: 5px;
+}
+vbox {
+	display: flex;
+	flex-direction: column;
+}
+hbox {
+	display: flex;
+}
+label {
+	display: block;
+	padding: 0px 3px 0 4px;
+}
+img {
+	display: block;
+}
+.normal {
+	color: ;
+}
+.special {
+	color: #F6F67C;
+}
+.magic {
+	color: #7DFF81;
+}
+.epic {
+	color: #E88CFF;
+}
+.legend {
+	color: #CE3903;
+}
+.bonus {
+	color: #5CC0FF;
+}
         </style>
+        <div id="items-index">
+            <div id="item"></div>
+        </div>
         <div id="items-container">
             <table>
                     <thead class="card">
@@ -84,7 +141,7 @@
                                         <select id="attackSpeedSearch" onchange="searchTable('attackSpeedSearch', 'items')" multiple>
                                             <option value="" selected>All</option>
                                             <option value="fast">Fast</option>
-                                            <option value="medium">Medium</option>
+                                            <option value="med">Medium</option>
                                             <option value="slow">Slow</option>
                                         </select>
                                     </th>
