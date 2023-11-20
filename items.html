@@ -29,19 +29,19 @@
 			</noscript>
 		</div>
         <h1 id="title"></h1>
-
         <style>
         #items-container {
             display: flex;
             justify-content: center;
             text-align: center; /* add this line */
+            display: none;
         }
         #items-container table {
             border-collapse: collapse;
             border-spacing: 0;
             border: 0px solid #ddd;
             margin: 0 auto;
-            width: 100%;
+            max-width: 100px;
         }
         #items-container td {
             border-bottom: 1px solid gray;
@@ -54,118 +54,107 @@
         }
 
         @font-face {
-	font-family: "Candara Regular";
-	src: url("//api.cor-forum.de/Candara Regular.ttf") format("truetype");
-}
-item-window {
-	font-family: "Candara Regular", monospace;
-	font-size: 13px;
-	color: white;
-	text-shadow: 1px 1px 1px black;
-	display: inline-block;
-	line-height: 18px;
-	min-width: 250px;
-}
-tooltip {
-	min-width: 200px;
-}
-borderbox {
-	background: #131A23;
-	border: 1px solid #4C4D4D;
-	border-radius: 5px;
-}
-vbox {
-	display: flex;
-	flex-direction: column;
-}
-hbox {
-	display: flex;
-}
-label {
-	display: block;
-	padding: 0px 3px 0 4px;
-}
-img {
-	display: block;
-}
-.normal {
-	color: ;
-}
-.special {
-	color: #F6F67C;
-}
-.magic {
-	color: #7DFF81;
-}
-.epic {
-	color: #E88CFF;
-}
-.legend {
-	color: #CE3903;
-}
-.bonus {
-	color: #5CC0FF;
+	font-family: 'Candara Regular';
+	src: url('/data/items/candara_regular.ttf') format('truetype');
 }
         </style>
+        <style>
+            #items-index{
+                width: 100%;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            #item {
+                font-family: "Candara Regular", monospace;
+                font-size: 13px;
+                color: white;
+                text-shadow: 1px 1px 1px black;
+                display: inline-block;
+                line-height: 18px;
+                min-width: 240px;
+                max-width: 250px;
+            }
+            #item img {
+                display: block;
+            }
+            #item label {
+                display: block;
+	            padding: 0px 3px 0 4px;
+            }
+            #item label.itemlevel {
+                font-size: 12px;
+                color: #F6F67C;
+            }
+            #item item-window {
+
+            }
+            #item borderbox {
+                background: #131A23;
+                border: 1px solid #4C4D4D;
+                border-radius: 5px;
+            }
+            #item vbox {
+                display: flex;
+                flex-direction: column;
+            }
+            #item hbox {
+                display: flex;
+            }
+            #item label.normal {
+                color: none;
+            }
+            #item label.special {
+                color: #F6F67C;
+            }
+            #item label.magic {
+                color: #7DFF81;
+            }
+            #item label.epic {
+                color: #E88CFF;
+            }
+            #item label.legendary {
+                color: #CE3903;
+            }
+            #item label.bonus {
+                color: #5CC0FF;
+            }
+            #item label.description {
+                color: #B7B8BB;
+            }
+            #filters {
+                padding-left: 20px;
+            }
+        </style>
+
+    <div id="we-select" class="card">
+        <div>
+        <label for="we-filter" id="we-filter-label"></label>
+        <select id="we-filter"></select>
+        </div>
+        <div>
+        <label for="we-level" id="we-level-label"></label>
+        <select id="we-level"></select>
+        </div>
+        <div>
+        </div>
+    </div>
+
+
+<div id="items-index">
+    <div id="item"></div>
+</div>
+
+</div>
+<div id="footer" class="card"></div>
+</body>
+</html>
+
         <div id="items-index">
             <div id="item"></div>
-        </div>
-        <div id="items-container">
-            <table>
-                    <thead class="card">
-                            <tr>
-                                    <th id="icon"></th>
-                                    <th id="name"></th>
-                                    <th id="damage"></th>
-                                    <th id="range"></th>
-                                    <th id="attack_speed"></th>
-                                    <th id="requires"></th>
-                                    <th id="category"></th>
-                                    <th id="weight"></th>
-                                    <th id="bonus"></th>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <select id="itemcategorySearch" onchange="searchTable('itemcategorySearch', 'items')" multiple>
-                                        <option value="" selected>All</option>
-                                        <option value="magna">Magnanite Weapon</option>
-                                        <option value="dragon">Dragon</option>
-                                    </select>
-
-
-                                </th>
-                                    <th><input type="text" id="nameSearch" onkeyup="searchTable('nameSearch', 'items')"></th>
-                                    <th><input type="text" id="damageSearch" onkeyup="searchTable('damageSearch', 'items')"></th>
-                                    <th><input type="text" id="rangeSearch" onkeyup="searchTable('rangeSearch', 'items')"></th>
-                                    <th>
-                                        <select id="attackSpeedSearch" onchange="searchTable('attackSpeedSearch', 'items')" multiple>
-                                            <option value="" selected>All</option>
-                                            <option value="fast">Fast</option>
-                                            <option value="med">Medium</option>
-                                            <option value="slow">Slow</option>
-                                        </select>
-                                    </th>
-                                    <th>
-                                        <select id="requiresSearch" onchange="searchTable('requiresSearch', 'items')" multiple>
-                                            <option value="" selected>All</option>
-                                            <option value="Mage">Mage</option>
-                                            <option value="Archer">Archer</option>
-                                            <option value="Barbarian">Barbarian</option>
-                                        </select>
-                                    </th>
-                                    <th>
-                                        <select id="categorySearch" onchange="searchTable('categorySearch', 'items')" multiple>
-                                            <option value="" selected>All</option>
-                                            <option value="Weapon">Weapon</option>
-                                            <option value="Armor">Armor</option>
-                                        </select>
-                                    </th>
-                                    <th><input type="text" id="weightSearch" onkeyup="searchTable('weightSearch', 'items')"></th>
-                                    <th><input type="text" id="bonusSearch" onkeyup="searchTable('bonusSearch', 'items')"></th>
-                            </tr>
-                    </thead>
-                    <tbody id="items"></tbody>
-            </table>
         </div>
     </div>
 	<div id="footer" class="card"></div>
