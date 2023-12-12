@@ -6,8 +6,8 @@ let menu = `
 	<a href="javascript:toggle_menu('on')" id="menu_toggler">${_("☰  Menu")}</a>
 	</div>
 	<div id="menu-content">
-		<span class="menuitem"><b><a href="./">🏫${_("Trainer")}</a></b></span>
-		<span class="menuitem"><b><a href="wz.html">🪓${_("WZ status")}</a></b></span>
+		<span class="menuitem"><b><a href="./"><img src="/data/menu/trainer.png" width="16px"> ${_("Trainer")}</a></b></span>
+		<span class="menuitem"><b><a href="wz.html"><img src="https://cor-forum.de/regnum/datengrab/textures/img/82397-Tower%20map%20icon.png" width="16px"> ${_("WZ status")}</a></b></span>
 		<span class="menuitem"><b><a href="bosses.html">👾${_("Bosses status")}</a></b></span>
 		<span class="menuitem"><b><a href="bz.html">🏟${_("BZ status")}</a></b></span>
 		<span class="menuitem"><b><a href="wevents.html">🗓️${_("WZ events")}</a></b></span>
