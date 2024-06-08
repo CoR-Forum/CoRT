@@ -127,6 +127,87 @@
             }
         </style>
 
+
+
+<!-- HTML -->
+<div id="filters">
+    <input type="text" id="search-input" placeholder="Search...">
+    <label for="checkbox-filter">
+        <input type="checkbox" id="checkbox-filter"> Checkbox Filter
+    </label>
+    <select id="dropdown-filter">
+        <option value="">All</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+        <option value="option3">Option 3</option>
+    </select>
+</div>
+
+<div id="items-container"></div>
+
+<script>
+    // JavaScript
+    fetch('/data/items/items.json')
+        .then(response => response.json())
+        .then(data => {
+            const itemsContainer = document.getElementById('items-container');
+
+            // Function to generate HTML for each item
+            const generateItemHTML = (item) => {
+                return `
+                    <div class="item">
+                        <h3>${item.name}</h3>
+                        <p>${item.description}</p>
+                        <p>${item.price}</p>
+                    </div>
+                `;
+            };
+
+            // Function to filter items based on search, checkbox, and dropdown filters
+            const filterItems = () => {
+                const searchInput = document.getElementById('search-input').value.toLowerCase();
+                const checkboxFilter = document.getElementById('checkbox-filter').checked;
+                const dropdownFilter = document.getElementById('dropdown-filter').value;
+
+                const filteredItems = data.filter(item => {
+                    // Apply search filter
+                    if (searchInput && !item.name.toLowerCase().includes(searchInput)) {
+                        return false;
+                    }
+
+                    // Apply checkbox filter
+                    if (checkboxFilter && !item.checkboxProperty) {
+                        return false;
+                    }
+
+                    // Apply dropdown filter
+                    if (dropdownFilter && item.dropdownProperty !== dropdownFilter) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                // Generate HTML for filtered items
+                const itemsHTML = filteredItems.map(item => generateItemHTML(item)).join('');
+                itemsContainer.innerHTML = itemsHTML;
+            };
+
+            // Initial rendering
+            filterItems();
+
+            // Event listeners for filters
+            document.getElementById('search-input').addEventListener('input', filterItems);
+            document.getElementById('checkbox-filter').addEventListener('change', filterItems);
+            document.getElementById('dropdown-filter').addEventListener('change', filterItems);
+        })
+        .catch(error => {
+            console.error('Error fetching JSON data:', error);
+        });
+</script>
+
+
+
     <div id="we-select" class="card">
         <div>
         <label for="we-filter" id="we-filter-label"></label>
@@ -139,8 +220,6 @@
         <div>
         </div>
     </div>
-
-
 <div id="items-index">
     <div id="item"></div>
 </div>
