@@ -57,7 +57,7 @@ select, button {
 }
 select {
 	/* let us style <select> on webkit browsers */
-	-webkit-appearance: none;
+	--webkit-appearance: none;
 }
 .card {
 	background: var(--card_background);
