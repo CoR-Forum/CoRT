@@ -40,10 +40,14 @@ let __menu_content = `
 			<a href="#">${__menu_icons["wstats"]} ${_("Statistics")}</a>
 			<div class="menuitem menu-dropdown-content">
 				<a href="wstats.html">${__menu_icons["wstats"]} ${_("WZ statistics")}</a>
-				<a href="https://poludnica.shinyapps.io/configs/" target="_blank">
-			${__menu_icons["tstats"]} ${_("Trainer statistics")}
-			${__menu_external_link}</a>
+				<a href="https://poludnica.shinyapps.io/configs/" target="_blank">${__menu_icons["tstats"]} ${_("Trainer statistics")}${__menu_external_link}</a>
 				<a href="rankingarchive.html">${__menu_icons["wstats"]} ${_("Rankingarchive")}</a>
+			</div>
+		</li>
+		<li class="menuitem bold menu-dropdown">
+			<a href="#">${__menu_icons["wstats"]} ${_("Archive")}</a>
+			<div class="menuitem menu-dropdown-content">
+				<a href="texturesparadise.html">${__menu_icons["wstats"]} ${_("Textures Paradise")}</a>
 			</div>
 		</li>
 		<li class="menuitem"><a href="https://poludnica.shinyapps.io/rcalc/" target="_blank">
