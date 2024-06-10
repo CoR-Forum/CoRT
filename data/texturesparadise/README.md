@@ -4,7 +4,9 @@
 
 Textures need to be in the folder ``img``.
 
-This will create a file containing the texture metadata
+This will generate the thumbnails and create a file containing the texture metadata.
+
+### Usage
 
 Run the script:
 
@@ -18,3 +20,7 @@ Output:
 files.json
 thumbnails/
 ```
+
+### Notice
+
+``files.json`` is hosted by the application, ``thumbnails/`` and ``img/`` should be kept on a remote server.
