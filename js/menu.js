@@ -129,3 +129,18 @@ function get_hits() {
 }
 if (window.location.origin == __api__frontsite)
 	setTimeout(get_hits, 2000);
+
+window.addEventListener('scroll', function() {
+	if (window.pageYOffset > 100) {
+		document.getElementById('scroll-to-top').style.display = 'block';
+	} else {
+		document.getElementById('scroll-to-top').style.display = 'none';
+	}
+});
+
+function scrollToTop() {
+	window.scrollTo({
+		top: 0,
+		behavior: 'smooth'
+	});
+}
