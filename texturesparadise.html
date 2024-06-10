@@ -53,6 +53,7 @@
 				transition: border-color 0.3s ease-in-out;
 				margin: 0 auto;
 				display: block;
+				width: 20em;
 			}
 
 			#search-input:focus {
@@ -98,6 +99,7 @@
 						.then(data => {
 							// Hide loading message
 							loadingMessage.style.display = 'none';
+							texturesCount = data.textures.length;
 
 							// Function to render textures based on data
 							const renderTextures = (textures) => {
@@ -130,6 +132,7 @@
 
 							// Add event listener to search input
 							searchInput.addEventListener('input', filterTextures);
+							searchInput.placeholder = `Search ${texturesCount} textures...`;
 						});
 				});
 
