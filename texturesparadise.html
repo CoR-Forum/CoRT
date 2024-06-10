@@ -104,9 +104,10 @@
 								textures.forEach(texture => {
 									const textureElement = document.createElement('div');
 									textureElement.classList.add('texture');
+									const textureName = texture.filename.split('-')[1].split('.')[0].trim();
 									textureElement.innerHTML = `
-										<img src="https://cor-forum.de/regnum/datengrab/textures/thumbnails/${texture.filename}" alt="${texture.name}" loading="lazy">
-										<p>${texture.name}</p>
+										<img src="https://cor-forum.de/regnum/datengrab/textures/thumbnails/${texture.filename}" alt="${textureName}" loading="lazy">
+										<p>${textureName}</p>
 									`;
 									texturesContainer.appendChild(textureElement);
 								});
