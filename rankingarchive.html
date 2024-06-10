@@ -11,21 +11,58 @@
 		<link rel="icon" type="image/png" href="favicon.png">
 		<link rel="apple-touch-icon" href="favicon.png" sizes="192x192">
 		<script type="module" src="js/menu.js"></script>
+		<style>
+			#loading {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 100%;
+				height: 100px;
+			}
+
+			#loading-text {
+				font-size: 24px;
+			}
+
+			#iframe-container {
+				display: none;
+			}
+		</style>
+		<script>
+			window.addEventListener('DOMContentLoaded', function() {
+				var iframe = document.getElementById('iframe');
+				var loading = document.getElementById('loading');
+				var iframeContainer = document.getElementById('iframe-container');
+
+				iframe.addEventListener('load', function() {
+					loading.style.display = 'none';
+					iframeContainer.style.display = 'block';
+				});
+			});
+		</script>
 	</head>
 	<body>
-	<div id="menu" class="card"></div>
-	<div id="main-container">
-		<div class="bugnum but on your side">
-			<noscript>
-				For full functionality of this site it is necessary to enable JavaScript.
-				Here are the <a href="https://www.enable-javascript.com/">
-					instructions how to enable JavaScript in your web browser</a>.
-			</noscript>
+		<div id="menu" class="card"></div>
+		<div id="main-container">
+			<div class="bugnum but on your side">
+				<noscript>
+					For full functionality of this site it is necessary to enable JavaScript.
+					Here are the <a href="https://www.enable-javascript.com/">
+						instructions how to enable JavaScript in your web browser</a>.
+				</noscript>
+			</div>
+			<h1 id="title">Ra Ranking Archive</h1>
+			<center>
+				<a href="rankingarchive.html"><button>Ra</button></a>
+				<a href="rankingarchive-valhalla.html"><button>Valhalla (abandoned)</button></a>
+			</center>
+			<div id="loading">
+				<p id="loading-text">Loading...</p>
+			</div>
+			<div id="iframe-container">
+				<iframe id="iframe" style="width:100%;height:1300px;border:none;padding-top:1em" scrolling="yes" src="https://cor-forum.de/regnum/rankingarchive/ra.php"></iframe>
+			</div>
 		</div>
-		<h1 id="title">Ranking Archive</h1>
-        <iframe style="width:100%;height:85%" src="https://cor-forum.de/regnum/rankingarchive/ra.php"></iframe>
-        <h3> For Valhalla, <a href="rankingarchive-valhalla.html">klick here</a>.</h3>
-	</div>
-	<div id="footer" class="card"></div>
+		<div id="footer" class="card"></div>
 	</body>
 </html>
