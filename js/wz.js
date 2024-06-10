@@ -169,7 +169,8 @@ async function display_wz(init=false) {
 		}
 		$(`#wz-${realm.toLowerCase()}`).html(`
 				<div class="wz-realm-header">
-				<span class="wz-realmname ${realm_colors[realm]}">${realm}</span>
+				<!-- span class="wz-realmname ${realm_colors[realm]}">${realm}</!-->
+				<span class="wz-realmname"><img height="40" src="data/img/text-${realm}.png" /></span>
 				<span class="wz-gems">${gems.splice(0, 6).join("")}</span>
 				<span class="wz-relics">${relics}</span>
 				<span class="wz-forts">${forts.splice(0, 4).join("")}</span>
