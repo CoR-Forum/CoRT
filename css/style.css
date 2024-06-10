@@ -151,9 +151,10 @@ header {
 	display: none;
 	position: absolute;
 	background: var(--tooltip_background);
-	width: 15em;
+	width: 20em;
 	border-radius: 5px;
 	border: 2px solid var(--foreground);
+	z-index: 1;
 }
 .menu-dropdown-content a {
 	text-decoration: none;
