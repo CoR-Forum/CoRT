@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta property="og:image" content="/CoRT/favicon_512.png">
+		<title>Champions of Regnum - Texture Paradise</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses war warzone guerra status">
+		<meta name="description" content="Champions of Regnum trainer, war status, bosses respawn and bz countdowns">
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="icon" type="image/png" href="favicon.png">
+		<link rel="apple-touch-icon" href="favicon.png" sizes="192x192">
+		<script type="module" src="js/menu.js"></script>
+		<style>
+			#textures-container {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				grid-gap: 1rem;
+				margin-top: 1rem;
+			}
+
+			.texture {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.texture img {
+				width: 100%;
+				height: auto;
+				max-width: 50px;
+				max-height: 50px;
+				cursor: pointer; /* Add cursor style for clickable images */
+			}
+
+			/* Add CSS styles for enlarged images */
+			.texture img.enlarged {
+				max-width: none;
+				max-height: none;
+				width: auto;
+				height: auto;
+			}
+
+			#search-input {
+				margin-bottom: 1rem;
+				border: 2px solid #ccc;
+				border-radius: 5px;
+				padding: 0.5rem;
+				font-size: 16px;
+				outline: none;
+				transition: border-color 0.3s ease-in-out;
+				margin: 0 auto;
+				display: block;
+			}
+
+			#search-input:focus {
+				border-color: #007bff;
+				box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+			}
+
+			#loading-message {
+				display: none;
+				text-align: center;
+				margin-top: 1rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="menu" class="card"></div>
+		<div id="main-container">
+			<div class="bugnum but on your side">
+				<noscript>
+					For full functionality of this site it is necessary to enable JavaScript.
+					Here are the <a href="https://www.enable-javascript.com/">
+						instructions how to enable JavaScript in your web browser</a>.
+				</noscript>
+			</div>
+			<h1 id="title">Texture Paradise</h1>
+			<div id="titleinfo">Click on an image to enlarge it.</div>
+			<input type="text" id="search-input" placeholder="Search textures...">
+			<div id="loading-message">Loading...</div>
+			<div id="textures-container"></div>
+
+			<script>
+				// load textures from /data/texturesparadise/files.json (format: {textures: [ { "filename": "texture.jpg", "name": "Texture 1"}, ... ]})
+				window.addEventListener('load', () => {
+					const loadingMessage = document.getElementById('loading-message');
+					const texturesContainer = document.getElementById('textures-container');
+					const searchInput = document.getElementById('search-input');
+
+					// Show loading message
+					loadingMessage.style.display = 'block';
+
+					fetch('/data/texturesparadise/files.json')
+						.then(response => response.json())
+						.then(data => {
+							// Hide loading message
+							loadingMessage.style.display = 'none';
+
+							// Function to render textures based on data
+							const renderTextures = (textures) => {
+								texturesContainer.innerHTML = '';
+
+								textures.forEach(texture => {
+									const textureElement = document.createElement('div');
+									textureElement.classList.add('texture');
+									textureElement.innerHTML = `
+										<img src="https://cor-forum.de/regnum/datengrab/textures/thumbnails/${texture.filename}" alt="${texture.name}" loading="lazy">
+										<p>${texture.name}</p>
+									`;
+									texturesContainer.appendChild(textureElement);
+								});
+							};
+
+							// Function to filter textures based on search input
+							const filterTextures = () => {
+								const searchText = searchInput.value.toLowerCase();
+								const filteredTextures = data.textures.filter(texture => {
+									return texture.name.toLowerCase().includes(searchText);
+								});
+
+								renderTextures(filteredTextures);
+							};
+
+							// Initial rendering of all textures
+							renderTextures(data.textures);
+
+							// Add event listener to search input
+							searchInput.addEventListener('input', filterTextures);
+						});
+				});
+
+				// Add click event listener to images and replace img src with full size image
+				document.getElementById('textures-container').addEventListener('click', (event) => {
+					const target = event.target;
+					if (target.tagName === 'IMG') {
+						if (target.classList.contains('enlarged')) {
+							target.classList.remove('enlarged');
+							target.src = target.src.replace('/img/', '/thumbnails/');
+						} else {
+							target.classList.add('enlarged');
+							target.src = target.src.replace('/thumbnails/', '/img/');
+						}
+					}
+				});
+			</script>
+		</div>
+		<div id="footer" class="card"></div>
+	</body>
+</html>
