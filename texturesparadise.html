@@ -117,7 +117,7 @@
 							const filterTextures = () => {
 								const searchText = searchInput.value.toLowerCase();
 								const filteredTextures = data.textures.filter(texture => {
-									return texture.name.toLowerCase().includes(searchText);
+									return texture.filename.toLowerCase().includes(searchText);
 								});
 
 								renderTextures(filteredTextures);
