@@ -61,6 +61,14 @@
 				box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 			}
 
+			#search-buttons {
+				margin-bottom: 1rem;
+				margin-top: 0.5rem;
+				display: flex;
+				justify-content: center;
+				gap: 0.5rem;
+			}
+
 			#loading-message {
 				display: none;
 				text-align: center;
@@ -79,8 +87,20 @@
 				</noscript>
 			</div>
 			<h1 id="title">Textures Paradise</h1>
-			<div id="titleinfo">Click on an image to enlarge it.</div>
+			<div id="titleinfo">By default, all images are thumbnails at 100x100px.<br>
+				Click on an image to enlarge and load it in full quality.</div>
+			<p class="center">Last data update: 2022 (Update in progress)</p>
 			<input type="text" id="search-input" placeholder="Search textures...">
+			<div id="search-buttons">
+				<button class="search-button" onclick="fillSearchInput('gui')">gui</button>
+				<button class="search-button" onclick="fillSearchInput('map')">map</button>
+
+				<button class="search-button" onclick="fillSearchInput('icon power')">icon power</button>
+				<button class="search-button" onclick="fillSearchInput('icon item')">icon item</button>
+				<button class="search-button" onclick="fillSearchInput('icon monster')">icon monster</button>
+				<button class="search-button" onclick="fillSearchInput('')">reset search</button>
+
+			</div>
 			<div id="loading-message">Loading...</div>
 			<div id="textures-container" class="card"></div>
 
@@ -90,6 +110,8 @@
 					const loadingMessage = document.getElementById('loading-message');
 					const texturesContainer = document.getElementById('textures-container');
 					const searchInput = document.getElementById('search-input');
+
+												// Function to fill search input with a given value
 
 					// Show loading message
 					loadingMessage.style.display = 'block';
@@ -149,6 +171,13 @@
 						}
 					}
 				});
+
+				// Function to fill search input with a given value
+				function fillSearchInput(value) {
+					document.getElementById('search-input').value = value;
+					document.getElementById('search-input').dispatchEvent(new Event('input'));
+				}
+
 			</script>
 		</div>
 		<div id="footer" class="card"></div>
