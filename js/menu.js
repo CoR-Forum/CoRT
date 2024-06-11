@@ -51,6 +51,7 @@ let __menu_content = `
 			<div class="menuitem menu-dropdown-content">
 				<a href="texturesparadise.html">${__menu_icons["wstats"]} ${_("Textures Paradise")}</a>
 				<a href="worldcup-event-archive.html">${__menu_icons["wstats"]} ${_("Worldcup Event Ranking Archive")}</a>
+				<a href="timeline.html">${__menu_icons["wstats"]} ${_("Manuka's Timeline")}</a>
 			</div>
 		</li>
 		<li class="menuitem"><a href="https://poludnica.shinyapps.io/rcalc/" target="_blank">
