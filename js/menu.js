@@ -78,30 +78,10 @@ let __menu_footer = `
 		<p> <!--VERSION-->Version: 20240609.174012
 `;
 
-let __tracking_footer = `
-<!-- Matomo -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="//analytics.treudler.net/";
-    _paq.push(['setTrackerUrl', u+'matomo.php']);
-    _paq.push(['setSiteId', '20']);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<noscript><p><img referrerpolicy="no-referrer-when-downgrade" src="//analytics.treudler.net/matomo.php?idsite=20&amp;rec=1" style="border:0;" alt="" /></p></noscript>
-<!-- End Matomo Code -->
-`;
-
 $(document).ready(function() {
 
 	$("#menu").html(__menu_content);
-	$("#footer").append(__menu_footer);
-	$("#footer").append(__tracking_footer);
+	$("#footer-menu").append(__menu_footer);
 
 	let langs = {
 		"en": "English",
