@@ -1,0 +1,17 @@
+body{text-align:left;}
+/* Define layout for icon */
+.timeline-event-icon img{width: 10px; height:10px;}
+/* Define layout for event class */
+.bug {color:red; }
+.timeline-event-tape.bug {background:red;}
+.timeline-event-icon.bug img{background-image: url(images/red-circle.png);}
+.update {font-family:courier;}
+.hotfix {font-family:courier; font-size:11px;}
+.timeline-event-icon.hotfix img{height: 7px; width: 7px;}
+.klasse {font-style:italic; color:darkorchid;}
+.timeline-event-tape.klasse {background:darkorchid;} 
+.spell {font-variant:small-caps;}
+.timeline-event-tape.spell {background:darkgray;}
+.faktor {font-weight: bold;}
+.event {font-family: "Times New Roman";color:brown;}
+.timeline-event-tape.event {background:brown;}

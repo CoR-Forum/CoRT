@@ -1,0 +1,59 @@
+body{background-image: url(images/bg_kachel.jpg);text-align: center;}
+body,table,th,td,tr,div,p,pre,h1,h2,h3,h4,ul {font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;} 
+/* font-family: Georgia, "Times New Roman"; */
+/* font-family: Tahoma, Verdana; */
+body,td,div,p,ul {font-size: 13px;}
+ul {list-style-type: circle; margin-top:5px;}
+img.screen {margin: 3px; border: 1px solid;}
+h1 { font-size: 18px; border-bottom: 3px solid limegreen;}
+h2 { font-size: 16px; margin:0px;}
+h3 { font-size: 13px; margin:0px; color: darkgreen;} /* font-size: 14px; */
+a {	font-size: 13px; text-decoration: underline;}
+a:link {color:#000000;}
+a:visited {	color:#000000;}
+a:active { color:#00ff33;}
+a:hover { color: limegreen;}
+a.glossar {text-decoration: none;}
+a.glossar:hover {color:#000000;}
+
+#wrapper {position: relative;width: 760px;margin: 0 auto;text-align: left;} 
+#left {float: left;	width: 150px;}
+#logo {margin:20px 0px 20px;}
+#navi {}
+#navi a {font-size:medium; margin-left:10px;}
+#navi a:hover {font-weight: bold; color: limegreen;}
+#subnavi a {font-size: 13px; margin-left:25px;}
+#news {}
+#main {width: 550px; margin-left:30px;float: left;}
+#header {position: relative;}
+#title {position: absolute;	top:0px; left:0px;}
+#breadcrumbs {position:relative; padding-top: 45px; font-size: 10px; z-index:0;}
+#breadcrumbs a { font-size: 10px;}
+#headpic {	position: absolute;	top:10px; right:5px;	}/* border: thin solid teal; */
+#content {text-align: justify;}
+#content h1{margin:40px 0px 20px;}
+#columnl { float: left; width: 49%; margin-right:4px; }
+#columnr { float: right;width: 50%; }
+#toplink { clear: both;	float: right;}
+#footer { clear: both; margin-bottom:20px;}
+
+.active {font-weight:bold;}
+.navilink a{text-decoration: none;}
+.teaser {text-align:left;}
+.teaser p {margin-top:0px;}
+.teaser a {font-weight:bold; text-decoration: none;}
+.teaser a:hover {text-decoration: underline;}
+.linklist a {text-decoration: none;}
+.linklist a:hover {text-decoration: underline;}
+.contenttable table {border-spacing:4px; width: 100%;cursor:default;}
+.contenttable tr {vertical-align:top; text-align:left;}
+.contenttable th {background-color:limegreen;}
+.alsius {background-color:blue; font-size: 16px; margin:0px;font-weight:bold;}
+.ignis {background-color:red; font-size: 16px; margin:0px;font-weight:bold;}
+.syrtis {background-color:limegreen; font-size: 16px; margin:0px;font-weight:bold;}
+.contenttable td {border:thin solid black;}
+.bingotable table {border-spacing:4px; width: 100%;cursor:default;}
+.bingotable tr {vertical-align:top;text-align:center; vertical-align:middle;}
+.bingotable th {background-color:limegreen;}
+.bingotable td {width:20%; height:80;border:thin solid black;}
+.mini {font-size: 11px;}
