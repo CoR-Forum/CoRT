@@ -1,0 +1,3 @@
+[submodule "data/texturesparadise/crawler"]
+	path = data/texturesparadise/crawler
+	url = git@github.com:CoR-Forum/regnum-online-resources-crawler.git
