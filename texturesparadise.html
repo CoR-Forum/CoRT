@@ -152,9 +152,12 @@
 							// Initial rendering of all textures
 							renderTextures(data.textures);
 
-							// Add event listener to search input
-							searchInput.addEventListener('input', filterTextures);
-							searchInput.placeholder = `Search ${texturesCount} textures...`;
+							// Add event listener to search input with sleep to prevent too many requests
+							let searchTimeout;
+							searchInput.addEventListener('input', () => {
+								clearTimeout(searchTimeout);
+								searchTimeout = setTimeout(filterTextures, 500);
+							});
 						});
 				});
 
