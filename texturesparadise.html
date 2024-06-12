@@ -158,6 +158,9 @@
 								clearTimeout(searchTimeout);
 								searchTimeout = setTimeout(filterTextures, 500);
 							});
+
+							// set the search input placeholder to the number of textures
+							searchInput.placeholder = `Search ${texturesCount} textures...`;
 						});
 				});
 
