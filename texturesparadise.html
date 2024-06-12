@@ -116,7 +116,7 @@
 					// Show loading message
 					loadingMessage.style.display = 'block';
 
-					fetch('/data/texturesparadise/files.json')
+					fetch('https://cor-forum.de/regnum/datengrab/res/TEXTURE/files.json')
 						.then(response => response.json())
 						.then(data => {
 							// Hide loading message
@@ -132,7 +132,7 @@
 									textureElement.classList.add('texture');
 									const textureName = texture.filename.split('-')[1].split('.')[0].trim();
 									textureElement.innerHTML = `
-										<img src="https://cor-forum.de/regnum/datengrab/textures/thumbnails/${texture.filename}" alt="${textureName}" loading="lazy">
+										<img src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/${texture.filename}" alt="${textureName}" loading="lazy">
 										<p>${textureName}</p>
 									`;
 									texturesContainer.appendChild(textureElement);
