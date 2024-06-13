@@ -170,10 +170,10 @@
 					if (target.tagName === 'IMG') {
 						if (target.classList.contains('enlarged')) {
 							target.classList.remove('enlarged');
-							target.src = target.src.replace('/img/', '/thumbnails/');
+							target.src = target.src.replace('/TEXTURE/', '/TEXTURE/thumbnails/');
 						} else {
 							target.classList.add('enlarged');
-							target.src = target.src.replace('/thumbnails/', '/img/');
+							target.src = target.src.replace('/TEXTURE/thumbnails/', '/TEXTURE/');
 						}
 					}
 				});
