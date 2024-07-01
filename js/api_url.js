@@ -7,10 +7,10 @@
 // The root where all API files can be found
 export const __api__base = "https://hail.thebus.top/CoRT";
 // Used by the trainer to filter setup submissions
-export const __api__frontsite = "https://mascaldotfr.github.io";
+export const __api__frontsite = "https://cort.cor-forum.de";
 // Subdirectory where the HTML/JS/CSS/etc. files are placed, relative to your
 // www root with the leading '/'
-export const __api__frontsite_dir = "/CoRT";
+export const __api__frontsite_dir = "/";
 
 export const __api__urls = {
 	"submit_trainer": `${__api__base}/collect/submit.php`,
