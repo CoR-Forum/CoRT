@@ -6,6 +6,8 @@
 
 // The root where all API files can be found
 export const __api__base = "https://hail.thebus.top/CoRT";
+// The API url used by login and marketplace
+export const __api__market = "http://localhost:8080/api/v1";
 // Used by the trainer to filter setup submissions
 export const __api__frontsite = "https://cort.cor-forum.de";
 // Subdirectory where the HTML/JS/CSS/etc. files are placed, relative to your
