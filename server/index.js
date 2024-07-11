@@ -382,16 +382,23 @@ app.post(API_PATH + '/logout', (req, res) => {
 
 // activate - activate user account with registration key
 app.get(API_PATH + '/activate/:registration_key', (req, res) => {
-    const registration_key = req.params.registration_key;
-    console.log('Activating user with registration key: ' + registration_key);
-    db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [registration_key], (err, result) => {
-        if (err) {
-            console.error('Error querying database: ' + err);
-            res.status(500).send('Internal Server Error');
-            return;
-        }
-        res.send('User activated. You can now login.');
+  const registration_key = req.params.registration_key;
+  console.log('Activating user with registration key: ' + registration_key);
+  db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [registration_key], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    db.query('UPDATE users SET registration_key = NULL WHERE registration_key = ?', [registration_key], (err, result) => {
+      if (err) {
+        console.error('Error querying database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.send('User activated. You can now login.');
     });
+  });
 });
 
 // retrieve own user
@@ -432,6 +439,11 @@ app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
         }
         res.send(result);
     });
+});
+
+// /trainer/mysetups (without API_PATH) will output the file /mysetups.html
+app.get('/trainer/mysetups', checkAuth, (req, res) => {
+  res.sendFile(__dirname + '/mysetups.html');
 });
 
 // Start server

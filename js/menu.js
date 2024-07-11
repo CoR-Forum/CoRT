@@ -67,10 +67,10 @@ let __menu_content = `
 		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["trainer"]} ${_("Login")}</a></li>
 		<li id="userMenu" style="display:none;" class="menuitem bold menu-dropdown">
 			<a href="#">${__menu_icons["wstats"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
-				<div class="menuitem menu-dropdown-content" style="width:10em">
-					<p id="userMenuUsername"></p>
-					<p id="userMenuEmail"></p>
-					<p id="userMenuRole"></p>
+				<div class="menuitem menu-dropdown-content" style="width:12em">
+					<small id="userMenuUsername"></small> - <small id="userMenuEmail"></small>
+					<small id="userMenuRole"></small>
+					<a id="userMenuSetups" href="/trainer/mysetups">${__menu_icons["wstats"]} ${_("My Trainer Setups")}</a>
 					<button id="logoutButton">${__menu_icons["wstats"]} ${_("Logout")}</button>
 				</div>
 		</li>

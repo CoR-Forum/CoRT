@@ -206,8 +206,8 @@ $("#t-save-dialog-save").on("click", function() {
 			let setup_name = $("#t-save-dialog-name").val();
 			// get the setup from the hidden input field
 			let setup_url = $("#t-save-dialog-url").val();
-			// modify the setup_url to remove everything before ?t=
-			setup_url = setup_url.substring(setup_url.indexOf("?t="));
+			// modify the setup_url to remove everything before ?t=, including ?t=
+			setup_url = setup_url.substring(setup_url.indexOf("?t=") + 3);
 			// send the setup to the API using fetch
 			console.log("Saving setup: ", setup_name, setup_url);
 			fetch(__api__market + "/trainer/setup", {
