@@ -247,11 +247,17 @@ export const __i18n__ = {
 		"es": "Cargar / Reiniciar",
 		"de": "Laden / Zurücksetzen"
 	},
-	"Share / Save":
+	"Share":
 	{
-		"fr": "Partager / Sauvegarder",
-		"es": "Compartir / Guardar",
-		"de": "Teilen / Sichern"
+		"fr": "Partager",
+		"es": "Compartir",
+		"de": "Teilen"
+	},
+	"Save in Account":
+	{
+		"fr": "Sauvegarder",
+		"es": "Guardar",
+		"de": "Sichern"
 	},
 	"Discipline points:":
 	{

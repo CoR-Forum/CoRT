@@ -149,6 +149,19 @@ db.query('SELECT * FROM markets WHERE name = ?', ['Syrtis'], (err, result) => {
   }
 });
 
+// saved trainer setups
+db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  url TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  user_id INT NOT NULL
+)`, (err, result) => {
+  if (err) throw err;
+  console.log('Table trainer_setups created or updated');
+});
+
 // SMTP
 // check if smtp is configured
 if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM) {
@@ -241,7 +254,7 @@ function checkAuth(req, res, next) {
   if (req.session.userId) {
       next(); // User is logged in, proceed to the next middleware
   } else {
-      res.json({ message: 'Unauthorized' });
+      res.json({ status: 'unauthorized', message: 'Unauthorized, please login' });
   }
 }
 
@@ -390,6 +403,34 @@ app.get(API_PATH + '/user', checkAuth, (req, res) => {
             return;
         }
         res.send(result[0]);
+    });
+});
+
+// create trainer setup
+app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
+    const { name, url } = req.body;
+    const created_at = new Date();
+    const updated_at = new Date();
+    console.log('Creating trainer setup: ' + name, url);
+    db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId], (err, result) => {
+        if (err) {
+            console.error('Error inserting trainer setup into database: ' + err);
+            res.json({ status: 'error', message: 'Error creating trainer setup' });
+            return;
+        }
+        res.json({ status: 'success', message: 'Trainer setup created' });
+    });
+});
+
+// retrieve own trainer setups
+app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
+    db.query('SELECT * FROM trainer_setups WHERE user_id = ?', [req.session.userId], (err, result) => {
+        if (err) {
+            console.error('Error querying database: ' + err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+        res.send(result);
     });
 });
 

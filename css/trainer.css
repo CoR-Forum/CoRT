@@ -11,7 +11,7 @@
 	display: flex;
 	flex: 1;
 }
-#t-version, #t-class, #t-level, #t-load, #t-save {
+#t-version, #t-class, #t-level, #t-load, #t-share #t-save {
 	flex-grow: 1;
 }
 .points { text-align:center; visibility: hidden; }
@@ -117,4 +117,31 @@
 	font-weight: bold;
 }
 
+#t-save-dialog {
+	position: absolute;
+	top: 0px;
+	background: var(--dialog_background);
+	box-shadow: 0px 0px 2px 2px #aaa;
+	border: 0px;
+}
+#t-save-dialog h3 {
+	margin: var(--default_margin_padding);
+	text-align: center;
+	color: white;
+}
+
+#t-save-dialog h4 {
+	margin: var(--default_margin_padding);
+	text-align: center;
+	color: white;
+}
+
+#t-save-dialog-url {
+	width: 100%;
+	margin: var(--default_margin_padding) 0;
+}
+#t-save-dialog-buttons {
+	text-align: right;
+	font-weight: bold;
+}
 
