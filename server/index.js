@@ -48,6 +48,7 @@ const SMTP_PORT = process.env.SMTP_PORT;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
 // Database
 const db = mysql.createConnection({
@@ -227,7 +228,7 @@ const sessionStore = new MySQLStore({
 });
 app.use(
   session({
-    secret: 'faipea5Ohp5quoxielook2Ohd3abai', // Use a secret key for your session
+    secret: SESSION_SECRET, // Use a secret key for your session
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false }, // Set to true if using https
