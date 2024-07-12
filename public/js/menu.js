@@ -141,8 +141,13 @@ let __menu_content = `
 					<input style="max-width:60%" type="password" id="regPassword" name="password" required><br>
 					<label for="password2">${_("Repeat password")}</label><br>
 					<input style="max-width:60%" type="password" id="regPassword2" name="password2" required><br>
+					<!-- CAPTCHA question -->
+					<div id="captchaQuestion"></div>
+					<input type="hidden" id="correctAnswer">
+					<input style="max-width:60%" type="text" id="captchaAnswer" name="captchaAnswer" required><br>
 				</form>
-				<button id="registrationButton">${_("Register")}</button><br>
+									<button id="registrationButton">${_("Register")}</button><br>
+
 				<a id="closeRegistrationModal" class="close">&times; back</a>
 			</div>
 			</div>
@@ -238,6 +243,7 @@ $(document).ready(function() {
 	$("#registrationLink").on("click", function() {
 		$("#login-form").css("display", "none");
 		$("#registration-form").css("display", "block");
+		generateCaptcha();
 	});
 
 	// event listener for the close button in the registration form
@@ -324,6 +330,15 @@ function register() {
 		alert("Passwords do not match");
 		return;
 	}
+	// check CAPTCHA
+	let num1 = parseInt($("#correctAnswer").val());
+	let num2 = parseInt($("#captchaAnswer").val());
+	if (num1 + num2 != num1 + num2) {
+		alert("CAPTCHA answer is incorrect");
+		return;
+	} else {
+		console.log("CAPTCHA answer is correct");
+	}
 	fetch(__api__market + "/register", {
 		method: "POST",
 		body: JSON.stringify({username: username, nickname: nickname, email: email, password: password}),
@@ -344,6 +359,18 @@ function register() {
 	.catch(error => {
 		alert("Registration failed: " + error);
 	});
+}
+
+function generateCaptcha() {
+    const num1 = Math.floor(Math.random() * 10); // Generate a random number between 0 and 9
+    const num2 = Math.floor(Math.random() * 10); // Generate another random number between 0 and 9
+    const sum = num1 + num2; // Calculate the sum of these numbers
+
+    // Update the CAPTCHA question on the form
+    document.getElementById('captchaQuestion').textContent = `What is ${num1} + ${num2}?`;
+
+    // Store the correct answer in a hidden field for later verification
+    document.getElementById('correctAnswer').value = sum;
 }
 
 // get basic hit statistics
