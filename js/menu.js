@@ -33,7 +33,13 @@ let __menu_content = `
 	<label for="menu-click" class="menu-btn"><span class="bold">${_("☰  Menu")}</span></label>
 	<header>
 		<ul id="menu-links">
-		<li class="menuitem bold"><a href="./">${__menu_icons["trainer"]} ${_("Trainer")}</a></li>
+		<li class="menuitem bold menu-dropdown">
+			<a href="./">${__menu_icons["trainer"]} ${_("Trainer")}</a>
+			<div class="menuitem menu-dropdown-content">
+				<a href="setups.html">${_("Public Setups")}</a>
+				<a href="mysetups.html">${_("My Setups")}</a>
+			</div>
+		</li>
 		<li class="menuitem bold"><a href="wz.html">${__menu_icons["wz"]} ${_("WZ status")}</a></li>
 		<li class="menuitem bold"><a href="bosses.html">${__menu_icons["bosses"]} ${_("Bosses status")}</a></li>
 		<li class="menuitem bold"><a href="bz.html">${__menu_icons["bz"]} ${_("BZ status")}</a></li>

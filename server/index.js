@@ -453,13 +453,29 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
     return;
   }
 
-  db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id, setup_version, setup_class, setup_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId, setup_version, setup_class, setup_level], (err, result) => {
+  // Check if user has reached the limit of 10 setups per hour
+  const hourAgo = new Date();
+  hourAgo.setHours(hourAgo.getHours() - 1);
+  db.query('SELECT COUNT(*) AS setupCount FROM trainer_setups WHERE user_id = ? AND created_at > ?', [req.session.userId, hourAgo], (err, result) => {
     if (err) {
-      console.error('Error inserting trainer setup into database: ' + err);
-      res.json({ status: 'error', message: 'Error creating trainer setup' });
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
       return;
     }
-    res.json({ status: 'success', message: 'Trainer setup created' });
+    const setupCount = result[0].setupCount;
+    if (setupCount >= 10) {
+      res.json({ status: 'error', message: 'You have reached the limit of 10 setups per hour' });
+      return;
+    }
+
+    db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id, setup_version, setup_class, setup_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId, setup_version, setup_class, setup_level], (err, result) => {
+      if (err) {
+        console.error('Error inserting trainer setup into database: ' + err);
+        res.json({ status: 'error', message: 'Error creating trainer setup' });
+        return;
+      }
+      res.json({ status: 'success', message: 'Trainer setup created' });
+    });
   });
 });
 
@@ -474,6 +490,20 @@ app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
         res.send(result);
     });
 });
+
+// retrieve all public trainer setups
+// include user nickname and id
+app.get(API_PATH + '/trainer/setups', (req, res) => {
+  db.query('SELECT trainer_setups.*, users.nickname, users.id AS user_id FROM trainer_setups JOIN users ON trainer_setups.user_id = users.id WHERE is_public = TRUE', (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.send(result);
+  });
+});
+
 
 // delete own trainer setup
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
@@ -494,7 +524,7 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
 });
 
 // change public status of own trainer setup
-app.put(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
+app.put(API_PATH + '/trainer/mysetups/:id/status', checkAuth, (req, res) => {
   const id = req.params.id;
   const is_public = req.body.is_public;
   console.log('Changing public status of trainer setup: ' + id, is_public);
@@ -511,6 +541,26 @@ app.put(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
     res.json({ status: 'success', message: 'Trainer setup public status changed' });
   });
 });
+
+// change name of own trainer setup
+app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
+  const id = req.params.id;
+  const name = req.body.name;
+  console.log('Changing name of trainer setup: ' + id, name);
+  db.query('UPDATE trainer_setups SET name = ? WHERE id = ? AND user_id = ?', [name, id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.affectedRows === 0) {
+      res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
+      return;
+    }
+    res.json({ status: 'success', message: 'Trainer setup name changed' });
+  });
+});
+
 
 // Start server
 app.listen(PORT, () => {
