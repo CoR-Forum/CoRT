@@ -266,6 +266,14 @@ function checkAuth(req, res, next) {
 // / will serve static files from ../ and /api/v1 will serve the rest api
   app.use('/', express.static('public'));
 
+// CORS
+// Add headers to allow cross-origin requests
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-type, Authorization');
+  next();
+});
+
 // USERS
 // register - register a new user with email, password, username, nickname.
 // encrypt password with bcrypt
