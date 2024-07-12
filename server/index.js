@@ -118,25 +118,41 @@ db.query(`CREATE TABLE IF NOT EXISTS private_markets (
 
 // market items
 db.query(`CREATE TABLE IF NOT EXISTS market_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    images TEXT NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    market_id INT NOT NULL,
-    user_id INT NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    status VARCHAR(255) NOT NULL,
-    sold_at TIMESTAMP,
-    buyer_id INT,
-    sellType VARCHAR(255) NOT NULL
-    )`, (err, result) => {
-    if (err) throw err;
-    console.log('Table market_items created or updated');
-    });
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  images TEXT NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(255) NOT NULL CHECK (currency IN ('magnanite', 'euro')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  market_id INT NOT NULL,
+  user_id INT NOT NULL,
+  type VARCHAR(255) NOT NULL CHECK (type IN ('auction', 'static')),
+  status VARCHAR(255) NOT NULL,
+  sold_at TIMESTAMP,
+  buyer_id INT,
+  sellType VARCHAR(255) NOT NULL,
+  item_type VARCHAR(255) NOT NULL CHECK (item_type IN ('weapon', 'armor', 'jewelry', 'misc', 'magnanite')),
+  bids INT DEFAULT 0
+)`, (err, result) => {
+  if (err) throw err;
+  console.log('Table market_items created or updated');
+});
+
+// bids
+db.query(`CREATE TABLE IF NOT EXISTS bids (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  price DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  revoked BOOLEAN DEFAULT FALSE,
+  revoked_at TIMESTAMP,
+  market_item_id INT NOT NULL,
+  user_id INT NOT NULL
+)`, (err, result) => {
+  if (err) throw err;
+  console.log('Table bids created or updated');
+});
 
 // default markets. check if they exist, if not create them
 db.query('SELECT * FROM markets WHERE name = ?', ['Syrtis'], (err, result) => {
@@ -160,7 +176,10 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
   setup_class VARCHAR(255),
   setup_level INT,
   user_id INT NOT NULL,
-  is_public BOOLEAN DEFAULT FALSE
+  is_public BOOLEAN DEFAULT FALSE,
+  recommendations INT DEFAULT 0,
+  rating DECIMAL(10,2) DEFAULT 0.00,
+  ratings INT DEFAULT 0
 )`, (err, result) => {
   if (err) throw err;
   console.log('Table trainer_setups created or updated');
@@ -512,7 +531,6 @@ app.get(API_PATH + '/trainer/setups', (req, res) => {
   });
 });
 
-
 // delete own trainer setup
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   const id = req.params.id;
@@ -558,12 +576,10 @@ app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
   db.query('UPDATE trainer_setups SET name = ? WHERE id = ? AND user_id = ?', [name, id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
+      return res.status(500).send('Internal Server Error');
     }
     if (result.affectedRows === 0) {
-      res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
-      return;
+      return res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
     }
     res.json({ status: 'success', message: 'Trainer setup name changed' });
   });
