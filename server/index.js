@@ -264,7 +264,9 @@ function checkAuth(req, res, next) {
 
 // Routes
 // / will serve static files from ../ and /api/v1 will serve the rest api
-app.use('/', express.static('../'));
+if (process.env.NODE_ENV === 'development') {
+  app.use('/', express.static('../'));
+}
 
 // USERS
 // register - register a new user with email, password, username, nickname.
