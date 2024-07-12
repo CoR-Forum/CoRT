@@ -57,7 +57,9 @@
 							<th>Class</th>
 							<th>Version</th>
 							<th>Created</th>
+							<th>Public</th>
 							<th>Actions</th>
+							
 						</tr>
 					</thead>
 					<tbody>
@@ -114,7 +116,10 @@
 						var date = new Date(setup.created_at);
 						created.innerHTML = date.toLocaleString();
 
-						var url = row.insertCell(5);
+						var public = row.insertCell(5);
+						public.innerHTML = setup.is_public ? 'Yes <a id="changeSetupPublicButton" href="#">change</a>' : 'No <a id="changeSetupPublicButton" href="#">change</a>';
+
+						var url = row.insertCell(6);
 						url.innerHTML = '<a href="/?t=' + setup.url + '">View</a> <a id="deleteSetupButton" href="#">Delete</a>';
 
 						// var actions = row.insertCell(1);
@@ -150,6 +155,32 @@
 								}
 							});
 					}
+				}
+			});
+
+			// add event listener to change public button
+			document.getElementById('setups').addEventListener('click', function(event) {
+				if (event.target.id === 'changeSetupPublicButton') {
+					var row = event.target.parentElement.parentElement;
+					var id = row.cells[0].innerHTML;
+					var isPublic = row.cells[5].innerHTML.includes('Yes');
+					var newPublic = !isPublic;
+					fetch('/api/v1/trainer/mysetups/' + id, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							is_public: newPublic
+						})
+					})
+						.then(response => {
+							if (response.ok) {
+								row.cells[5].innerHTML = newPublic ? 'Yes <a id="changeSetupPublicButton" href="#">change</a>' : 'No <a id="changeSetupPublicButton" href="#">change</a>';
+							} else {
+								alert('Failed to change setup public status');
+							}
+						});
 				}
 			});
 		</script>

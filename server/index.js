@@ -159,7 +159,8 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
   setup_version VARCHAR(255),
   setup_class VARCHAR(255),
   setup_level INT,
-  user_id INT NOT NULL
+  user_id INT NOT NULL,
+  is_public BOOLEAN DEFAULT FALSE
 )`, (err, result) => {
   if (err) throw err;
   console.log('Table trainer_setups created or updated');
@@ -489,6 +490,25 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
       return;
     }
     res.json({ status: 'success', message: 'Trainer setup deleted' });
+  });
+});
+
+// change public status of own trainer setup
+app.put(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
+  const id = req.params.id;
+  const is_public = req.body.is_public;
+  console.log('Changing public status of trainer setup: ' + id, is_public);
+  db.query('UPDATE trainer_setups SET is_public = ? WHERE id = ? AND user_id = ?', [is_public, id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.affectedRows === 0) {
+      res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
+      return;
+    }
+    res.json({ status: 'success', message: 'Trainer setup public status changed' });
   });
 });
 
