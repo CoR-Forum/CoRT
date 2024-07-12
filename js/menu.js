@@ -153,12 +153,13 @@ let __menu_content = `
 
 let __menu_footer = `
 		<div id="tz"><div id="tztitle">${_("Timezone:")}&nbsp;</div><select id="tzchooser"></select></div>
-		<p><i>CoRT is a free and open source website, feel free to check out its
-		<a href="https://github.com/mascaldotfr/CoRT" target="_blank">source code</a>, and report
-		<a href="https://github.com/mascaldotfr/CoRT/wiki/Bug-reports" target="_blank">bugs</a>.
-		See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
-		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i></p>
-		<p> <!--VERSION-->Version: 20240616.132426
+		<p><i>CoRT is a free and open source website.</i></p>
+		<p>This is a fork of the <a href="https://github.com/mascaldotfr/CoRT" target="_blank">original CoRT project</a>. You can find the
+		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>, and report
+		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">bugs</a>.
+		<!-- See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
+		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i --></p>
+		<p> <!--VERSION-->Version: 20240712.abends</p>
 `;
 
 $(document).ready(function() {
