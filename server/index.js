@@ -352,12 +352,6 @@ app.post(API_PATH + '/login', (req, res) => {
   const { login, password } = req.body;
   console.log('Logging in user: ' + login, password);
 
-    // Check if login is valid and does not include mysql wildcard characters
-    if (login.includes('%') || login.includes('_')) {
-      res.json({ status: 'error', message: 'Invalid username or email' });
-      return;
-    }
-
   // check if login is email or username
   const isEmail = login.includes('@');
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
@@ -401,6 +395,12 @@ app.post(API_PATH + '/login', (req, res) => {
           }
           console.log('User logged in: ' + user.email, user.username, user.nickname, user.role);
           res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
+
+          // send login notification email
+          const subject = 'Login Notification';
+          const text = `Hello ${user.username},\n\nYou have successfully logged in to your account on ${last_login}.`;
+          const html = `<p>Hello ${user.username},</p><p>You have successfully logged in to your account on ${last_login}.</p>`;
+          sendEmail(user.id, subject, text, html);
         });
         return; // Add return statement here
       }
