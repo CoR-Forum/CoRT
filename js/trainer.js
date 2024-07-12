@@ -204,8 +204,16 @@ $("#t-save-dialog-save").on("click", function() {
 		.then(() => {
 			// get the setup name from the input field
 			let setup_name = $("#t-save-dialog-name").val();
+			// name is required
+			if (setup_name == "") {
+				window.alert(_("Please enter a name for your setup."));
+				return;
+			}
 			// get the setup from the hidden input field
 			let setup_url = $("#t-save-dialog-url").val();
+			let setup_version = $("#t-version").val();
+			let setup_class = $("#t-class").val();
+			let setup_level = $("#t-level").val();
 			// modify the setup_url to remove everything before ?t=, including ?t=
 			setup_url = setup_url.substring(setup_url.indexOf("?t=") + 3);
 			// send the setup to the API using fetch
@@ -217,7 +225,10 @@ $("#t-save-dialog-save").on("click", function() {
 				},
 				body: JSON.stringify({
 					"name": setup_name,
-					"url": setup_url
+					"url": setup_url,
+					"setup_version": setup_version,
+					"setup_class": setup_class,
+					"setup_level": setup_level
 				})
 			})
 			.then(response => response.json())
@@ -227,7 +238,7 @@ $("#t-save-dialog-save").on("click", function() {
 					document.getElementById("t-save-dialog").close();
 					$("body").css("filter", "");
 					alert(_("Setup saved successfully!"));
-					window.location.href = "/api/v1/trainer/mysetups";
+					window.location.href = "mysetups.html";
 				}
 				else if (data.status === "unauthorized") {
 					// if the response is Unauthorized, show an error message
@@ -241,7 +252,7 @@ $("#t-save-dialog-save").on("click", function() {
 			.catch(error => {
 				// if the fetch fails, show an error message
 				console.error("Failed to save the setup: ", error);
-				window.alert(_("Failed to save the setup. Please try again."));
+				window.alert(_("Failed to save the setup: ", error));
 			});
 		})
 		.catch(() => {

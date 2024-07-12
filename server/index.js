@@ -156,6 +156,9 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
   url TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  setup_version VARCHAR(255),
+  setup_class VARCHAR(255),
+  setup_level INT,
   user_id INT NOT NULL
 )`, (err, result) => {
   if (err) throw err;
@@ -278,7 +281,23 @@ app.post(API_PATH + '/register', (req, res) => {
     res.json({ status: 'error', message: 'Please enter all fields' });
     return;
   }
-  
+
+  // Check if email, username and nickname are valid
+  if (!email.includes('@') || !email.includes('.') || email.length < 5 || email.length > 255) {
+    res.json({ status: 'error', message: 'Invalid email' });
+    return;
+  }
+  // username must be between 3 and 20 characters and only contain letters, numbers, and underscores
+  if (!username.match(/^[a-zA-Z0-9_]{3,20}$/)) {
+    res.json({ status: 'error', message: 'Invalid username' });
+    return;
+  }
+  // nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces
+  if (!nickname.match(/^[a-zA-Z0-9_ ]{3,20}$/)) {
+    res.json({ status: 'error', message: 'Invalid nickname' });
+    return;
+  }
+
   // Check if username, nickname, or email are already used
   db.query('SELECT * FROM users WHERE username = ? OR nickname = ? OR email = ?', [username, nickname, email], (err, result) => {
     if (err) {
@@ -323,6 +342,13 @@ app.post(API_PATH + '/register', (req, res) => {
 app.post(API_PATH + '/login', (req, res) => {
   const { login, password } = req.body;
   console.log('Logging in user: ' + login, password);
+
+    // Check if login is valid and does not include mysql wildcard characters
+    if (login.includes('%') || login.includes('_')) {
+      res.json({ status: 'error', message: 'Invalid username or email' });
+      return;
+    }
+
   // check if login is email or username
   const isEmail = login.includes('@');
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
@@ -415,18 +441,25 @@ app.get(API_PATH + '/user', checkAuth, (req, res) => {
 
 // create trainer setup
 app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
-    const { name, url } = req.body;
-    const created_at = new Date();
-    const updated_at = new Date();
-    console.log('Creating trainer setup: ' + name, url);
-    db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId], (err, result) => {
-        if (err) {
-            console.error('Error inserting trainer setup into database: ' + err);
-            res.json({ status: 'error', message: 'Error creating trainer setup' });
-            return;
-        }
-        res.json({ status: 'success', message: 'Trainer setup created' });
-    });
+  const { name, url, setup_version, setup_class, setup_level } = req.body;
+  const created_at = new Date();
+  const updated_at = new Date();
+  console.log('Creating trainer setup: ' + name, url);
+
+  // Check if name and url are provided
+  if (!name || !url) {
+    res.json({ status: 'error', message: 'Please provide name and url' });
+    return;
+  }
+
+  db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id, setup_version, setup_class, setup_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId, setup_version, setup_class, setup_level], (err, result) => {
+    if (err) {
+      console.error('Error inserting trainer setup into database: ' + err);
+      res.json({ status: 'error', message: 'Error creating trainer setup' });
+      return;
+    }
+    res.json({ status: 'success', message: 'Trainer setup created' });
+  });
 });
 
 // retrieve own trainer setups
@@ -441,9 +474,22 @@ app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
     });
 });
 
-// /trainer/mysetups (without API_PATH) will output the file /mysetups.html
-app.get('/trainer/mysetups', checkAuth, (req, res) => {
-  res.sendFile(__dirname + '/mysetups.html');
+// delete own trainer setup
+app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
+  const id = req.params.id;
+  console.log('Deleting trainer setup: ' + id);
+  db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.affectedRows === 0) {
+      res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
+      return;
+    }
+    res.json({ status: 'success', message: 'Trainer setup deleted' });
+  });
 });
 
 // Start server

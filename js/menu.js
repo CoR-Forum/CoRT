@@ -24,6 +24,7 @@ let __menu_icons = {
 	"armor": `<svg xmlns="http://www.w3.org/2000/svg" class="menu-icon" viewBox="0 0 36 36"><path fill="#CCD6DD" d="M33 3c-7-3-15-3-15-3S10 0 3 3C0 18 3 31 18 36c15-5 18-18 15-33z"/><path fill="#55ACEE" d="M18 33.884C6.412 29.729 1.961 19.831 4.76 4.444 11.063 2.029 17.928 2 18 2c.071 0 6.958.04 13.24 2.444 2.799 15.387-1.652 25.285-13.24 29.44z"/><path fill="#269" d="M31.24 4.444C24.958 2.04 18.071 2 18 2v31.884c11.588-4.155 16.039-14.053 13.24-29.44z"/></svg>`,
 	"map": `<img src="/data/img/map.png" class="menu-icon" alt="Map" />`,
 	"rankingarchive": `<img src="/data/img/rankingarchive.png" class="menu-icon" alt="Map" />`,
+	"user": `<img src="/data/img/user.png" class="menu-icon" alt="User" />`,
 
 }
 
@@ -64,14 +65,14 @@ let __menu_content = `
 			<div id="menu-lang-list" class="menu-lang-list"></div>
 		</div>
 		</li>
-		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["trainer"]} ${_("Login")}</a></li>
+		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["user"]} ${_("Login")}</a></li>
 		<li id="userMenu" style="display:none;" class="menuitem bold menu-dropdown">
-			<a href="#">${__menu_icons["wstats"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
+			<a href="#">${__menu_icons["user"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
 				<div class="menuitem menu-dropdown-content" style="width:12em">
 					<small id="userMenuUsername"></small> - <small id="userMenuEmail"></small>
 					<small id="userMenuRole"></small>
-					<a id="userMenuSetups" href="/trainer/mysetups">${__menu_icons["wstats"]} ${_("My Trainer Setups")}</a>
-					<button id="logoutButton">${__menu_icons["wstats"]} ${_("Logout")}</button>
+					<a id="userMenuSetups" href="/mysetups.html">${_("My Trainer Setups")}</a>
+					<button id="logoutButton">${_("Logout")}</button>
 				</div>
 		</li>
 		</ul>
