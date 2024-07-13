@@ -340,6 +340,12 @@ app.post(API_PATH + '/register', (req, res) => {
     return;
   }
 
+  // password must be at least 8 characters long and contain at least one letter, one number, and one special character
+  if (!password.match(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/)) {
+    res.json({ status: 'error', message: 'Password bust be 8 characters long and contain at least one letter, one number and one special character.' });
+    return;
+  }
+
   // Check if username, nickname, or email are already used
   db.query('SELECT * FROM users WHERE username = ? OR nickname = ? OR email = ?', [username, nickname, email], (err, result) => {
     if (err) {
