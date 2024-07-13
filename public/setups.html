@@ -11,18 +11,6 @@
 		<link rel="icon" type="image/png" href="/favicon.png">
 		<link rel="apple-touch-icon" href="/favicon.png" sizes="192x192">
 		<script type="module" src="/js/menu.js"></script>
-		<script>
-			window.addEventListener('DOMContentLoaded', function() {
-				var iframe = document.getElementById('iframe');
-				var loading = document.getElementById('loading');
-				var iframeContainer = document.getElementById('iframe-container');
-
-				iframe.addEventListener('load', function() {
-					loading.style.display = 'none';
-					iframeContainer.style.display = 'block';
-				});
-			});
-		</script>
 	</head>
 	<body>
 		<div id="menu" class="card"></div>
@@ -58,16 +46,80 @@
 							<th>Class</th>
 							<th>Version</th>
 							<th>Created</th>
-							<th>Creator</th>
+							<th>Rating</th>
 						</tr>
 					</thead>
 					<tbody>
 					</tbody>
 				</table>
-
-			</div>
+				<!-- rating modal -->
+				 <style>
+					/* The Modal (background) */
+				 </style>
+				<dialog id="ratingModal">
+						<h2>Rate this setup</h2>
+						<div id="ratingForm">
+							<input type="hidden" id="setupId" name="setupId">
+							<h3>Rating (1-5)</h3>
+							<input type="number" id="rating" name="rating" min="1" max="5" required><br>
+							<input type="checkbox" id="recommendation" name="recommendation">
+							<label for="recommendation">I recommend this Setup</label><br>
+							<h3>Review</h3>
+							<textarea id="review" name="review" rows="5" cols="50"></textarea>
+						</div>
+						<button class="close">Cancel</button>
+						<button id="submitRating">Submit</button>
+		</dialog>
+		<!-- end rating modal -->
+		<!-- reviews dialog -->
+		<dialog id="reviewsDialog">
+			<h3>All Reviews</h3>
+			<div id="reviews"></div>			
+			<button id="closeReviews">Close</button>
+		</dialog>
+		<!-- end reviews dialog -->
 		</div>
 		<script>
+			// reviews dialog button event listener
+			// fetch the reviews from the API and show them in the dialog as formatted elements
+			document.getElementById('setups').addEventListener('click', function(event) {
+				if (event.target.id === 'allRatingsButton') {
+					var dialog = document.getElementById('reviewsDialog');
+					var close = document.getElementById('closeReviews');
+					dialog.showModal();
+					close.onclick = function() {
+						dialog.close();
+					}
+					var setupId = event.target.parentElement.parentElement.cells[0].innerHTML;
+					fetch('/api/v1/trainer/ratings/' + setupId)
+						.then(response => response.json())
+						.then(data => {
+							var reviews = data;
+							var reviewsDiv = document.getElementById('reviews');
+							reviewsDiv.innerHTML = '';
+							for (var i = 0; i < reviews.length; i++) {
+								var review = reviews[i];
+								var reviewDiv = document.createElement('div');
+								reviewDiv.innerHTML = `
+									<b>${review.nickname}</b> ${generateStars(review.rating)} ${review.recommendation === 1 ? 'Recommended &#10004;' : 'Not recommended &#10006;'}<br>
+									${review.review ? `<i>${review.review}</i>` : ''}
+								`;
+
+								reviewsDiv.appendChild(reviewDiv);
+							}
+						});
+				}
+			});
+
+			function generateStars(rating) {
+									let stars = '';
+									for (let i = 1; i <= 5; i++) {
+										const star = i <= rating ? '★' : '☆';
+										stars += `<span>${star}</span>`;
+									}
+									return stars;
+								}
+
 			// fetch the setups from API
 			fetch('/api/v1/trainer/setups')
 				.then(response => response.json())
@@ -102,29 +154,82 @@
 						setup_version.innerHTML = setup.setup_version;
 
 						var created = row.insertCell(4);
-						// convert the date to a human-readable format
+						// convert the date to a human-readable format without the time
 						var date = new Date(setup.created_at);
-						created.innerHTML = date.toLocaleString();
+						created.innerHTML = setup.nickname + ', ' + date.toLocaleDateString();
 
-						var creator = row.insertCell(5);
-						creator.innerHTML = setup.nickname;
+						// rating
+						var rating = row.insertCell(5);
+						rating.innerHTML = generateStars(setup.rating) + ' (' + setup.ratings + ') &#9829; x' + setup.recommendations + '<br><button id="rateNowButton">Rate now</button> <button id="allRatingsButton">All Reviews</button>';					}
+				});
+			
+		// rate now button event listener
+		// show the modal when the button is clicked
+		// fetch the API and check if the user has already rated this setup, if yes, prefill the form
+		document.getElementById('setups').addEventListener('click', function(event) {
+			if (event.target.id === 'rateNowButton') {
+				var modal = document.getElementById('ratingModal');
+				var span = document.getElementsByClassName('close')[0];
+				modal.style.display = 'block';
+				span.onclick = function() {
+					modal.style.display = 'none';
+				}
+				window.onclick = function(event) {
+					if (event.target == modal) {
+						modal.style.display = 'none';
+					}
+				}
 
-						// var actions = row.insertCell(1);
-						// var loadButton = document.createElement('button');
-						// loadButton.innerHTML = 'Load';
-						// loadButton.url = 'hi';
-						// actions.appendChild(loadButton);
+				var setupId = event.target.parentElement.parentElement.cells[0].innerHTML;
+				fetch('/api/v1/trainer/myratings/' + setupId)
+				.then(response => response.json())
+					.then(data => {
+							document.getElementById('setupId').value = setupId;
+							document.getElementById('rating').value = data.rating;
+							// format the recommendation value (0 and 1 to Yes and No)
+							document.getElementById('recommendation').checked = data.recommendation === 1;
+							document.getElementById('review').value = data.review;
+					});
+			}
+		});
 
-						// var shareButton = document.createElement('button');
-						// shareButton.innerHTML = 'Share';
-						// actions.appendChild(shareButton);
-
-						// var saveButton = document.createElement('button');
-						// saveButton.innerHTML = 'Save';
-						// actions.appendChild(saveButton);
+		// submit rating form button event listener
+		document.getElementById('submitRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			// extract the data from the form
+			var setupId = document.getElementById('setupId').value;
+			// send the data to the API
+			fetch('/api/v1/trainer/rate/' + setupId, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					rating: document.getElementById('rating').value,
+					recommendation: document.getElementById('recommendation').checked ? 1 : 0,
+					review: document.getElementById('review').value
+				})
+			})
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'success') {
+						alert('Rating submitted successfully');
+						// document.getElementById('ratingModal').style.display = 'none';
+						location.reload();
+					} else {
+						alert('An error occurred while submitting the rating');
 					}
 				});
 
+		});
+
+		
+	
+				
+
+
+				
+				
 			
 		</script>
 		<div id="footer" class="card">

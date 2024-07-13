@@ -185,6 +185,20 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
   console.log('Table trainer_setups created or updated');
 });
 
+// saved trainer setups ratings
+db.query(`CREATE TABLE IF NOT EXISTS trainer_setup_ratings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  rating DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  recommendation BOOLEAN NOT NULL DEFAULT FALSE,
+  review TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  trainer_setup_id INT NOT NULL,
+  user_id INT NOT NULL
+)`, (err, result) => {
+  if (err) throw err;
+  console.log('Table trainer_setup_ratings created or updated');
+});
+
 // SMTP
 // check if smtp is configured
 if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM) {
@@ -530,6 +544,90 @@ app.get(API_PATH + '/trainer/setups', (req, res) => {
     res.send(result);
   });
 });
+
+// /trainer/myratings/:id will return the rating and the recommendations of the trainer setup
+// if the user has already rated the setup, return the rating, else return 0.00
+app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {
+  const id = req.params.id;
+  db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ rating: 0.00, recommendation: 0, review: ''});
+      return;
+    }
+    res.json(result[0]);
+  });
+});
+
+// update the rating and the recommendations of the trainer setup. if the user has already rated the setup, update the rating, else insert a new rating.
+app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
+  const id = req.params.id;
+  const { rating, recommendation, review } = req.body;
+  console.log('Rating trainer setup: ' + id, rating, recommendation, review);
+  db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      db.query('INSERT INTO trainer_setup_ratings (rating, trainer_setup_id, user_id, recommendation, review) VALUES (?, ?, ?, ?, ?)', [rating, id, req.session.userId, recommendation, review], (err, result) => {
+        if (err) {
+          console.error('Error inserting rating into database: ' + err);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+        res.json({ status: 'success', message: 'Rating inserted' });
+        recalculateRating(id); // Call recalculateRating after successful rating
+        return;
+      });
+    }
+    db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
+      if (err) {
+        console.error('Error updating rating in database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json({ status: 'success', message: 'Rating updated' });
+      recalculateRating(id); // Call recalculateRating after successful rating
+    });
+  });
+});
+
+// get all ratings of a trainer setup including the user nickname
+app.get(API_PATH + '/trainer/ratings/:id', (req, res) => {
+  const id = req.params.id;
+  db.query('SELECT trainer_setup_ratings.*, users.nickname FROM trainer_setup_ratings JOIN users ON trainer_setup_ratings.user_id = users.id WHERE trainer_setup_id = ?', [id], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.send(result);
+  });
+});
+
+// function to recalculate the rating of a trainer setup and count the ratings recommendations
+function recalculateRating(id) {
+  db.query('SELECT AVG(rating) AS rating, SUM(recommendation) AS recommendations, COUNT(rating) AS ratings FROM trainer_setup_ratings WHERE trainer_setup_id = ?', [id], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      return;
+    }
+    db.query('UPDATE trainer_setups SET rating = ?, recommendations = ?, ratings = ? WHERE id = ?', [result[0].rating, result[0].recommendations, result[0].ratings, id], (err, result) => {
+      if (err) {
+        console.error('Error updating rating in database: ' + err);
+        return;
+      }
+    });
+  });
+}
+
+
 
 // delete own trainer setup
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
