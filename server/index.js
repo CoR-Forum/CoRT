@@ -609,20 +609,20 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
             res.status(500).send('Internal Server Error');
             return;
           }
-          res.json({ status: 'success', message: 'Rating inserted' });
           recalculateRating(id); // Call recalculateRating after successful rating
-          return;
+          res.json({ status: 'success', message: 'Rating inserted' });
+        });
+      } else {
+        db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
+          if (err) {
+            console.error('Error updating rating in database: ' + err);
+            res.status(500).send('Internal Server Error');
+            return;
+          }
+          recalculateRating(id); // Call recalculateRating after successful rating
+          res.json({ status: 'success', message: 'Rating updated' });
         });
       }
-      db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
-        if (err) {
-          console.error('Error updating rating in database: ' + err);
-          res.status(500).send('Internal Server Error');
-          return;
-        }
-        res.json({ status: 'success', message: 'Rating updated' });
-        recalculateRating(id); // Call recalculateRating after successful rating
-      });
     });
   });
 });
