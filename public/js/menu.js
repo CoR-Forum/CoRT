@@ -71,7 +71,7 @@ let __menu_content = `
 			<div id="menu-lang-list" class="menu-lang-list"></div>
 		</div>
 		</li>
-		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["user"]} ${_("Login")}</a></li>
+		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["user"]} ${_("Login / Register")}</a></li>
 		<li id="userMenu" style="display:none;" class="menuitem bold menu-dropdown">
 			<a href="#">${__menu_icons["user"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
 				<div class="menuitem menu-dropdown-content" style="width:12em">
@@ -88,7 +88,7 @@ let __menu_content = `
 			<div class="modal-content">
 				<h2>${_("Login")}</h2>
 				<form id="login-form-content">
-					<label for="username">${_("Username")}</label><br>
+					<label for="username">${_("Username or e-mail address")}</label><br>
 					<input style="max-width:60%" type="text" id="username" name="username" required><br>
 					<label for="password">${_("Password")}</label><br>
 					<input style="max-width:60%" type="password" id="password" name="password" required><br>
@@ -131,7 +131,7 @@ let __menu_content = `
 			<div class="modal-content">
 				<h2>${_("Registration")}</h2>
 				<form id="registration-form-content">
-					<label for="username">${_("Username")}</label><br>
+					<label for="username">${_("Username (only for login)")}</label><br>
 					<input style="max-width:60%" type="text" id="regUsername" name="username" required><br>
 					<label for="nickname">${_("Nickname (visible to other users)")}</label><br>
 					<input style="max-width:60%" type="text" id="regNickname" name="nickname" required><br>
