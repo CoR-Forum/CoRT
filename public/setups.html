@@ -137,6 +137,9 @@
 					}
 
 					for (var i = 0; i < setups.length; i++) {
+						// sort setups by rating
+						setups.sort((a, b) => b.rating - a.rating);
+						
 						var setup = setups[i];
 						var row = table.insertRow(-1);
 
