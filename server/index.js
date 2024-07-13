@@ -568,32 +568,49 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   const { rating, recommendation, review } = req.body;
   console.log('Rating trainer setup: ' + id, rating, recommendation, review);
-  db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+  
+  // Check if the user is the owner of the trainer setup
+  db.query('SELECT user_id FROM trainer_setups WHERE id = ?', [id], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
-    if (result.length === 0) {
-      db.query('INSERT INTO trainer_setup_ratings (rating, trainer_setup_id, user_id, recommendation, review) VALUES (?, ?, ?, ?, ?)', [rating, id, req.session.userId, recommendation, review], (err, result) => {
-        if (err) {
-          console.error('Error inserting rating into database: ' + err);
-          res.status(500).send('Internal Server Error');
-          return;
-        }
-        res.json({ status: 'success', message: 'Rating inserted' });
-        recalculateRating(id); // Call recalculateRating after successful rating
-        return;
-      });
+    const ownerId = result[0].user_id;
+    
+    // Check if the user is the owner of the trainer setup
+    if (req.session.userId === ownerId) {
+      res.json({ status: 'error', message: 'You cannot rate your own trainer setup' });
+      return;
     }
-    db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
+    
+    db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
       if (err) {
-        console.error('Error updating rating in database: ' + err);
+        console.error('Error querying database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
-      res.json({ status: 'success', message: 'Rating updated' });
-      recalculateRating(id); // Call recalculateRating after successful rating
+      if (result.length === 0) {
+        db.query('INSERT INTO trainer_setup_ratings (rating, trainer_setup_id, user_id, recommendation, review) VALUES (?, ?, ?, ?, ?)', [rating, id, req.session.userId, recommendation, review], (err, result) => {
+          if (err) {
+            console.error('Error inserting rating into database: ' + err);
+            res.status(500).send('Internal Server Error');
+            return;
+          }
+          res.json({ status: 'success', message: 'Rating inserted' });
+          recalculateRating(id); // Call recalculateRating after successful rating
+          return;
+        });
+      }
+      db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
+        if (err) {
+          console.error('Error updating rating in database: ' + err);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+        res.json({ status: 'success', message: 'Rating updated' });
+        recalculateRating(id); // Call recalculateRating after successful rating
+      });
     });
   });
 });
