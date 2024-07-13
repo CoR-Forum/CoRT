@@ -342,7 +342,7 @@ app.post(API_PATH + '/register', (req, res) => {
 
   // password must be at least 8 characters long and contain at least one letter, one number, and one special character
   if (!password.match(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/)) {
-    res.json({ status: 'error', message: 'Password bust be 8 characters long and contain at least one letter, one number and one special character.' });
+    res.json({ status: 'error', message: 'Password bust be 8 characters long and contain at least one letter, one number and one specialZ' });
     return;
   }
 
