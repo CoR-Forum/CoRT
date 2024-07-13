@@ -671,6 +671,8 @@ function recalculateRating(id) {
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   console.log('Deleting trainer setup: ' + id);
+  
+  // Delete the trainer setup
   db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
@@ -681,7 +683,16 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
       res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
       return;
     }
-    res.json({ status: 'success', message: 'Trainer setup deleted' });
+    
+    // Delete all ratings of the deleted setup
+    db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ?', [id], (err, result) => {
+      if (err) {
+        console.error('Error querying database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json({ status: 'success', message: 'Trainer setup deleted' });
+    });
   });
 });
 
