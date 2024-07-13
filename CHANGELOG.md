@@ -4,3 +4,4 @@
 * **modified:** Users can no longer rate their own setups.
 * **added:** Users can now delete their own ratings.
 * **fixed:** If a trainer setup is deleted, delete all associated ratings too.
+* **fixed:** Cancel button of setup rating dialog was not working.

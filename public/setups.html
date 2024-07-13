@@ -67,7 +67,7 @@
 							<h3>Review</h3>
 							<textarea id="review" name="review" rows="5" cols="50"></textarea>
 						</div>
-						<button class="close">Cancel</button>
+						<button id="cancelRating">Cancel</button>
 						<button id="deleteRating">Delete Rating</button>
 						<button id="submitRating">Submit Rating</button>
 		</dialog>
@@ -250,6 +250,12 @@
 						}
 					});
 			}
+		});
+
+		// cancel rating button event listener
+		document.getElementById('cancelRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			document.getElementById('ratingModal').style.display = 'none';
 		});
 
 		
