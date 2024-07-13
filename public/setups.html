@@ -68,7 +68,8 @@
 							<textarea id="review" name="review" rows="5" cols="50"></textarea>
 						</div>
 						<button class="close">Cancel</button>
-						<button id="submitRating">Submit</button>
+						<button id="deleteRating">Delete Rating</button>
+						<button id="submitRating">Submit Rating</button>
 		</dialog>
 		<!-- end rating modal -->
 		<!-- reviews dialog -->
@@ -160,7 +161,9 @@
 
 						// rating
 						var rating = row.insertCell(5);
-						rating.innerHTML = generateStars(setup.rating) + ' (' + setup.ratings + ') &#9829; x' + setup.recommendations + '<br><button id="rateNowButton">Rate now</button> <button id="allRatingsButton">All Reviews</button>';					}
+						rating.innerHTML = generateStars(setup.rating) + ' (' + setup.ratings + ') &#9829; x' + (setup.recommendations || 0) + '<br><button id="rateNowButton">Rate now</button> <button id="allRatingsButton">All Reviews</button>';
+						
+					}
 				});
 			
 		// rate now button event listener
@@ -216,11 +219,37 @@
 						alert('Rating submitted successfully');
 						// document.getElementById('ratingModal').style.display = 'none';
 						location.reload();
+					} else if (data.status === 'error') {
+						alert(data.message);
 					} else {
 						alert('An error occurred while submitting the rating');
 					}
 				});
 
+		});
+
+		// delete rating button event listener
+		document.getElementById('deleteRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			// extract the data from the form
+			var setupId = document.getElementById('setupId').value;
+			// show confirmation dialog
+			if (confirm("Are you sure you want to delete your rating?")) {
+				// send the data to the API
+				fetch('/api/v1/trainer/rate/' + setupId, {
+					method: 'DELETE'
+				})
+					.then(response => response.json())
+					.then(data => {
+						if (data.status === 'success') {
+							alert('Rating deleted successfully');
+							// document.getElementById('ratingModal').style.display = 'none';
+							location.reload();
+						} else {
+							alert('An error occurred while deleting the rating');
+						}
+					});
+			}
 		});
 
 		

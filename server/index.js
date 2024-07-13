@@ -584,6 +584,12 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
       return;
     }
     
+    // Check if the rating is between 1 and 5
+    if (rating < 1 || rating > 5) {
+      res.json({ status: 'error', message: 'Rating must be between 1 and 5' });
+      return;
+    }
+    
     db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
       if (err) {
         console.error('Error querying database: ' + err);
@@ -612,6 +618,21 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
         recalculateRating(id); // Call recalculateRating after successful rating
       });
     });
+  });
+});
+
+// remove own rating of a trainer setup
+app.delete(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
+  const id = req.params.id;
+  console.log('Deleting rating of trainer setup: ' + id);
+  db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json({ status: 'success', message: 'Rating deleted' });
+    recalculateRating(id); // Call recalculateRating after successful rating
   });
 });
 
