@@ -28,13 +28,11 @@ const bcrypt = require('bcrypt');
 const socket = require('socket.io');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-// require smtp for sending emails
-const nodemailer = require('nodemailer');
 
+
+// Environment variables
 require('dotenv').config();
 
-
-// Constants
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || 'http://localhost';
 const API_PATH = process.env.API_PATH || '/api/v1';
@@ -199,7 +197,12 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setup_ratings (
   console.log('Table trainer_setup_ratings created or updated');
 });
 
+// EMAILS
+
+const nodemailer = require('nodemailer');
+
 // SMTP
+
 // check if smtp is configured
 if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM) {
   console.log('SMTP configured');
@@ -216,8 +219,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // function to send email to user
-// "to" is the user id, "subject" is the subject of the email, "text" is the text of the email
-// "html" is the html of the email
+// "to" is the user id, "subject" is the subject, "text" is the text version, "html" is the html version
 
 function sendEmail(to, subject, text, html) {
   if (typeof to === 'number') {
