@@ -38,6 +38,52 @@
 				}
 			</style>
 			<div class="card center">
+				<!-- filter -->
+				<div id="filter">
+					<label for="Name">Name:</label>
+					<input type="text" id="filterName" style="width:100px">
+					<select id="gameVersion">
+						<option value="all">All Game Versions</option>
+						<option value="1.33.12">Current Game Version (1.33.12)</option>
+						<option value="1.33.2">Game Version 1.33.2</option>
+					</select>
+					<select id="setupClass">
+						<option value="all">All Classes</option>
+						<option value="warrior">Warrior</option>
+						<option value="barbarian">Barbarian</option>
+						<option value="knight">Knight</option>
+						<option value="archer">Archer</option>
+						<option value="hunter">Hunter</option>
+						<option value="marksman">Marksman</option>	
+						<option value="mage">Mage</option>
+						<option value="conjurer">Conjurer</option>
+						<option value="warlock">Warlock</option>
+					</select>
+				</div>
+			</div>
+			<script>
+				// filter setups by name, class and game version
+				document.getElementById('filter').addEventListener('input', function(event) {
+					var name = document.getElementById('filterName').value;
+					var gameVersion = document.getElementById('gameVersion').value;
+					var setupClass = document.getElementById('setupClass').value;
+					var setups = document.getElementById('setups').getElementsByTagName('tbody')[0].rows;
+					for (var i = 0; i < setups.length; i++) {
+						var setup = setups[i];
+						var nameCell = setup.cells[1];
+						var classCell = setup.cells[2];
+						var versionCell = setup.cells[3];
+						if (nameCell.innerHTML.toLowerCase().includes(name.toLowerCase()) &&
+							(gameVersion === 'all' || versionCell.innerHTML === gameVersion) &&
+							(setupClass === 'all' || classCell.innerHTML.toLowerCase().includes(setupClass))) {
+							setup.style.display = '';
+						} else {
+							setup.style.display = 'none';
+						}
+					}
+				});
+			</script>
+			<div class="card center">
 				<!-- table for setups -->
 				<table id="setups" class="setupsTable">
 					<thead>
