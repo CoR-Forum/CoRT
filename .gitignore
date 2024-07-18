@@ -13,3 +13,4 @@ __pycache__**
 # server
 node_modules
 .env
+*.log
