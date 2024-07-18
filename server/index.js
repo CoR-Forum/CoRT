@@ -29,6 +29,28 @@ const socket = require('socket.io');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 
+// Winston logger
+const winston = require('winston');
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+  }));
+}
+
+module.exports = logger;
 
 // Environment variables
 require('dotenv').config();
@@ -59,10 +81,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
     if (err) {
-        console.error('Database connection failed: ' + err.stack);
+        logger.error('Database connection failed: ' + err.stack);
         return;
     }
-    console.log('Connected to database: ' + db.threadId);
+    logger.info('Connected to database: ' + db.threadId);
     });
 
 // check if database exists, if not create it
@@ -83,8 +105,11 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
   last_login TIMESTAMP,
   last_ip VARCHAR(255)
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table users created or updated');
+  if (err) {
+    logger.error('Error creating users table:', err);
+    throw err;
+  }
+  logger.info('Table users created or updated');
 });
 
 // markets
@@ -96,8 +121,11 @@ db.query(`CREATE TABLE IF NOT EXISTS markets (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table markets created or updated');
+  if (err) {
+    logger.error('Error creating markets table:', err);
+    throw err;
+  }
+  logger.info('Table markets created or updated');
 });
 
 // private markets
@@ -110,8 +138,11 @@ db.query(`CREATE TABLE IF NOT EXISTS private_markets (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table private_markets created or updated');
+  if (err) {
+    logger.error('Error creating private_markets table:', err);
+    throw err;
+  }
+  logger.info('Table private_markets created or updated');
 });
 
 // market items
@@ -134,8 +165,11 @@ db.query(`CREATE TABLE IF NOT EXISTS market_items (
   item_type VARCHAR(255) NOT NULL CHECK (item_type IN ('weapon', 'armor', 'jewelry', 'misc', 'magnanite')),
   bids INT DEFAULT 0
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table market_items created or updated');
+  if (err) {
+    logger.error('Error creating market_items table:', err);
+    throw err;
+  }
+  logger.info('Table market_items created or updated');
 });
 
 // bids
@@ -148,17 +182,26 @@ db.query(`CREATE TABLE IF NOT EXISTS bids (
   market_item_id INT NOT NULL,
   user_id INT NOT NULL
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table bids created or updated');
+  if (err) {
+    logger.error('Error creating bids table:', err);
+    throw err;
+  }
+  logger.info('Table bids created or updated');
 });
 
 // default markets. check if they exist, if not create them
 db.query('SELECT * FROM markets WHERE name = ?', ['Syrtis'], (err, result) => {
-  if (err) throw err;
+  if (err) {
+    logger.error('Error checking markets table:', err);
+    throw err;
+  }
   if (result.length === 0) {
     db.query('INSERT INTO markets (name, description, realm) VALUES (?, ?, ?)', ['Syrtis', 'Market for Syrtis', 'Syrtis'], (err, result) => {
-      if (err) throw err;
-      console.log('Default market created');
+      if (err) {
+        logger.error('Error creating default market:', err);
+        throw err;
+      }
+      logger.info('Default market created');
     });
   }
 });
@@ -179,8 +222,11 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
   rating DECIMAL(10,2) DEFAULT 0.00,
   ratings INT DEFAULT 0
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table trainer_setups created or updated');
+  if (err) {
+    logger.error('Error creating trainer_setups table:', err);
+    throw err;
+  }
+  logger.info('Table trainer_setups created or updated');
 });
 
 // saved trainer setups ratings
@@ -193,8 +239,11 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setup_ratings (
   trainer_setup_id INT NOT NULL,
   user_id INT NOT NULL
 )`, (err, result) => {
-  if (err) throw err;
-  console.log('Table trainer_setup_ratings created or updated');
+  if (err) {
+    logger.error('Error creating trainer_setup_ratings table:', err);
+    throw err;
+  }
+  logger.info('Table trainer_setup_ratings created or updated');
 });
 
 // EMAILS
@@ -202,11 +251,6 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setup_ratings (
 const nodemailer = require('nodemailer');
 
 // SMTP
-
-// check if smtp is configured
-if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM) {
-  console.log('SMTP configured');
-}
 
 // create transporter
 const transporter = nodemailer.createTransport({
@@ -225,7 +269,7 @@ function sendEmail(to, subject, text, html) {
   if (typeof to === 'number') {
     db.query('SELECT email FROM users WHERE id = ?', [to], (err, result) => {
       if (err) {
-        console.error('Error querying database: ' + err);
+        logger.error('Error querying database: ' + err);
         return;
       }
       const mailOptions = {
@@ -237,10 +281,10 @@ function sendEmail(to, subject, text, html) {
       };
       transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
-          console.error('Error sending email: ' + err);
+          logger.error('Error sending email: ' + err);
           return;
         }
-        console.log('Email sent: ' + info.response);
+        logger.info('Email sent: ' + info.response);
       });
     });
   } else {
@@ -253,13 +297,13 @@ function sendEmail(to, subject, text, html) {
     };
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        console.error('Error sending email: ' + err);
+        logger.error('Error sending email: ' + err);
         return;
       }
-      console.log('Email sent: ' + info.response);
+      logger.info('Email sent: ' + info.response);
     });
   }
-}
+};
 
 // send test email on startup to user id 4
 //sendEmail(4, 'Test email', 'This is a test email', '<p>This is a test email</p>');
@@ -318,7 +362,7 @@ app.post(API_PATH + '/register', (req, res) => {
   const registration_ip = req.connection.remoteAddress;
   const created_at = new Date();
   const updated_at = new Date();
-  console.log('Registering user: ' + email, username, nickname, password);
+  logger.info('Registering user: ' + email, username, nickname, password);
   
   // Check if fields are empty
   if (!email || !password || !username || !nickname) {
@@ -351,7 +395,7 @@ app.post(API_PATH + '/register', (req, res) => {
   // Check if username, nickname, or email are already used
   db.query('SELECT * FROM users WHERE username = ? OR nickname = ? OR email = ?', [username, nickname, email], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -362,13 +406,13 @@ app.post(API_PATH + '/register', (req, res) => {
     
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) {
-        console.error('Error hashing password: ' + err);
+        logger.error('Error hashing password: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
       db.query('INSERT INTO users (email, password, username, nickname, role, created_at, updated_at, registration_key, registration_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [email, hash, username, nickname, 'user', created_at, updated_at, registration_key, registration_ip], (err) => {
         if (err) {
-          console.error('Error inserting user into database: ' + err);
+          logger.error('Error inserting user into database: ' + err);
           res.status(500).send('Internal Server Error');
           return;
         }
@@ -377,7 +421,7 @@ app.post(API_PATH + '/register', (req, res) => {
         const text = 'Thank you for registering. Please click the link below to activate your account:';
         const html = `<p>Thank you for registering. Please click the link below to activate your account:</p><a href="${HOST}/api/v1/activate/${registration_key}">${HOST}/api/v1/activate/${registration_key}</a>`;
         sendEmail(email, subject, text, html);
-        console.log('User registered: ' + email, username, nickname, password);
+        logger.info('User registered: ' + email, username, nickname, password);
         res.json({ status: 'success', message: 'User registered' });
       });
     });
@@ -391,7 +435,7 @@ app.post(API_PATH + '/register', (req, res) => {
 // user can login with email or username and password. check if user is using email or username and query database accordingly
 app.post(API_PATH + '/login', (req, res) => {
   const { login, password } = req.body;
-  console.log('Logging in user: ' + login, password);
+  logger.info('Logging in user: ' + login, password);
 
   // check if login is email or username
   const isEmail = login.includes('@');
@@ -434,7 +478,7 @@ app.post(API_PATH + '/login', (req, res) => {
             res.status(500).send('Internal Server Error');
             return;
           }
-          console.log('User logged in: ' + user.email, user.username, user.nickname, user.role);
+          logger.info('User logged in: ' + user.email, user.username, user.nickname, user.role);
           res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
 
           // send login notification email
@@ -459,7 +503,7 @@ app.post(API_PATH + '/logout', (req, res) => {
 // activate - activate user account with registration key
 app.get(API_PATH + '/activate/:registration_key', (req, res) => {
   const registration_key = req.params.registration_key;
-  console.log('Activating user with registration key: ' + registration_key);
+  logger.info('Activating user with registration key: ' + registration_key);
   db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [registration_key], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
@@ -494,7 +538,7 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
   const { name, url, setup_version, setup_class, setup_level } = req.body;
   const created_at = new Date();
   const updated_at = new Date();
-  console.log('Creating trainer setup: ' + name, url);
+  logger.info('Creating trainer setup: ' + name, url);
 
   // Check if name and url are provided
   if (!name || !url) {
@@ -575,7 +619,7 @@ app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {
 app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   const { rating, recommendation, review } = req.body;
-  console.log('Rating trainer setup: ' + id, rating, recommendation, review);
+  logger.info('Rating trainer setup: ' + id, rating, recommendation, review);
   
   // Check if the user is the owner of the trainer setup
   db.query('SELECT user_id FROM trainer_setups WHERE id = ?', [id], (err, result) => {
@@ -632,7 +676,7 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
 // remove own rating of a trainer setup
 app.delete(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   const id = req.params.id;
-  console.log('Deleting rating of trainer setup: ' + id);
+  logger.info('Deleting rating of trainer setup: ' + id);
   db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
@@ -678,7 +722,7 @@ function recalculateRating(id) {
 // delete own trainer setup
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   const id = req.params.id;
-  console.log('Deleting trainer setup: ' + id);
+  logger.info('Deleting trainer setup: ' + id);
   
   // Delete the trainer setup
   db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
@@ -708,7 +752,7 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
 app.put(API_PATH + '/trainer/mysetups/:id/status', checkAuth, (req, res) => {
   const id = req.params.id;
   const is_public = req.body.is_public;
-  console.log('Changing public status of trainer setup: ' + id, is_public);
+  logger.info('Changing public status of trainer setup: ' + id, is_public);
   db.query('UPDATE trainer_setups SET is_public = ? WHERE id = ? AND user_id = ?', [is_public, id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
@@ -727,7 +771,7 @@ app.put(API_PATH + '/trainer/mysetups/:id/status', checkAuth, (req, res) => {
 app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
   const id = req.params.id;
   const name = req.body.name;
-  console.log('Changing name of trainer setup: ' + id, name);
+  logger.info('Changing name of trainer setup: ' + id, name);
   db.query('UPDATE trainer_setups SET name = ? WHERE id = ? AND user_id = ?', [name, id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
@@ -743,7 +787,7 @@ app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
+  logger.info(`Server running on ${HOST}:${PORT}`);
 });
 
 // End of file
