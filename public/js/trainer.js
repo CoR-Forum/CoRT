@@ -1,4 +1,4 @@
-import {__api__urls, __api__frontsite, __api__frontsite_dir} from "./api_url.js";
+import {__api__urls, __api__frontsite, __api__frontsite_dir, __api__market} from "./api_url.js";
 import {$} from "./libs/lamaiquery.js";
 import {_} from "./libs/i18n.js";
 import {LZString} from "./libs/lz-string.min.js";
@@ -47,7 +47,8 @@ $(document).ready(function() {
 			<option value="${clas}">${_(capitalize(clas))}</option>`);
 	}
 	$("#t-load").text(_("Load / Reset"));
-	$("#t-save").text(_("Share / Save"));
+	$("#t-share").text(_("Share"));
+	$("#t-save").text(_("Save in Account"));
 	$("#t-points p").html(`
 		<b>${_("Discipline points:")}</b>
 			<span id="t-dpointsleft">x</span>/<span id="t-dpointstotal">x</span>
@@ -57,6 +58,10 @@ $(document).ready(function() {
 		$("#t-dialog h3").text(_("Here is the link to your setup:"));
 		$("#t-dialog-copy").text(_("Copy link"));
 		$("#t-dialog-close").text(_("Close") + " (Esc)");
+		$("#t-save-dialog h3").text(_("Save the setup in your Account"));
+		$("#t-save-dialog h4").text(_("Name your setup:"));
+		$("#t-save-dialog-close").text(_("Close") + " (Esc)");
+		$("#t-save-dialog-save").text(_("Save Setup"));
 	}
 	else { // browser with no <dialog> support
 		$("#t-dialog").hide();
@@ -138,7 +143,7 @@ $("#t-level").on('change', function() {
 	window.location.assign(save_setup_to_url(false));
 });
 
-$("#t-save").on("click", function() {
+$("#t-share").on("click", function() {
 	if (trainerdata === null) {
 		window.alert(_(`You need first to load trees by clicking on "%s"!`, _("Load / Reset")));
 		return;
@@ -159,6 +164,102 @@ $("#t-save").on("click", function() {
 	}
 });
 
+$("#t-save").on("click", function() {
+	if (trainerdata === null) {
+		window.alert(_(`You need first to load trees by clicking on "%s"!`, _("Load / Reset")));
+		return;
+	}
+	let saved_url = save_setup_to_url();
+	if (saved_url == null)
+		return;
+	// check if the user is logged in by fetching the user's data from API at __api__market + "user"
+	$().getJSON(__api__market + "/user") // if the user is logged in, the API will return a JSON object
+		.then(() => {
+			$("#t-save-dialog-url").val(saved_url);
+			$("#t-save-dialog").attr("inert", "true");
+			document.getElementById("t-save-dialog").showModal();
+			$("#t-save-dialog").removeAttr("inert");
+			$("body").css("filter", "blur(10px)");
+		})
+		.catch(() => {
+			window.alert(_("You need to be logged in to save your setup."));
+		});
+});
+
+$("#t-save-dialog").on("cancel", function(e) {
+	e.preventDefault();
+	document.getElementById("t-save-dialog").close();
+	// Don't get a blurred page if people press 2 times ESC
+	$("body").css("filter", "");
+});
+
+$("#t-save-dialog-close").on("click", function() {
+	document.getElementById("t-save-dialog").close();
+	$("body").css("filter", "");
+});
+
+$("#t-save-dialog-save").on("click", function() {
+	// check if the user is logged in by fetching the user's data from API at __api__market + "user"
+	$().getJSON(__api__market + "/user") // if the user is logged in, the API will return a JSON object
+		.then(() => {
+			// get the setup name from the input field
+			let setup_name = $("#t-save-dialog-name").val();
+			// name is required
+			if (setup_name == "") {
+				window.alert(_("Please enter a name for your setup."));
+				return;
+			}
+			// get the setup from the hidden input field
+			let setup_url = $("#t-save-dialog-url").val();
+			let setup_version = $("#t-version").val();
+			let setup_class = $("#t-class").val();
+			let setup_level = $("#t-level").val();
+			// modify the setup_url to remove everything before ?t=, including ?t=
+			setup_url = setup_url.substring(setup_url.indexOf("?t=") + 3);
+			// send the setup to the API using fetch
+			console.log("Saving setup: ", setup_name, setup_url);
+			fetch(__api__market + "/trainer/setup", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					"name": setup_name,
+					"url": setup_url,
+					"setup_version": setup_version,
+					"setup_class": setup_class,
+					"setup_level": setup_level
+				})
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.status === "success") {
+					// if the response is OK, close the dialog and redirect to the user's setups
+					document.getElementById("t-save-dialog").close();
+					$("body").css("filter", "");
+					alert(_("Setup saved successfully!"));
+					window.location.href = "mysetups.html";
+				}
+				else if (data.status === "unauthorized") {
+					// if the response is Unauthorized, show an error message
+					window.alert(_("You need to be logged in to save your setup."));
+				}
+				else {
+					// if the response is not OK, show an error message
+					window.alert(_("Failed to save the setup. Please try again."));
+				}
+			})
+			.catch(error => {
+				// if the fetch fails, show an error message
+				console.error("Failed to save the setup: ", error);
+				window.alert(_("Failed to save the setup: ", error));
+			});
+		})
+		.catch(() => {
+			window.alert(_("You need to be logged in to save your setup."));
+		});
+});
+
 $("#t-dialog").on("cancel", function(e) {
 	e.preventDefault();
 	document.getElementById("t-dialog").close();
@@ -170,7 +271,6 @@ $("#t-dialog").on("cancel", function(e) {
 $("#t-dialog-close").on("click", function() {
 	window.location.href = $("#t-dialog-url").val();
 });
-
 
 $("#t-dialog-copy").on("click", function() {
 	function failure_message(error) {

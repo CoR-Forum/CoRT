@@ -2,7 +2,7 @@ import {_} from "./libs/i18n.js";
 import {__i18n__} from "../data/i18n_db.js";
 import {$} from "./libs/lamaiquery.js";
 import {create_tz_list} from "./libs/tz.js";
-import {__api__frontsite, __api__base} from "./api_url.js";
+import {__api__frontsite, __api__base, __api__market} from "./api_url.js";
 
 let __menu_external_link = `<svg xmlns="http://www.w3.org/2000/svg" class="menu-icon" fill="none" viewBox="0 0 24 24"><path stroke="#CCC" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5H8.2c-1.12 0-1.681 0-2.108.218a2 2 0 0 0-.874.874C5 6.52 5 7.08 5 8.2v7.6c0 1.12 0 1.68.218 2.108a2 2 0 0 0 .874.874c.427.218.987.218 2.105.218h7.606c1.118 0 1.677 0 2.104-.218.376-.192.683-.498.875-.875.218-.427.218-.987.218-2.104V14m1-5V4m0 0h-5m5 0-7 7"/></svg>`;
 let __menu_flags = {
@@ -24,6 +24,7 @@ let __menu_icons = {
 	"armor": `<svg xmlns="http://www.w3.org/2000/svg" class="menu-icon" viewBox="0 0 36 36"><path fill="#CCD6DD" d="M33 3c-7-3-15-3-15-3S10 0 3 3C0 18 3 31 18 36c15-5 18-18 15-33z"/><path fill="#55ACEE" d="M18 33.884C6.412 29.729 1.961 19.831 4.76 4.444 11.063 2.029 17.928 2 18 2c.071 0 6.958.04 13.24 2.444 2.799 15.387-1.652 25.285-13.24 29.44z"/><path fill="#269" d="M31.24 4.444C24.958 2.04 18.071 2 18 2v31.884c11.588-4.155 16.039-14.053 13.24-29.44z"/></svg>`,
 	"map": `<img src="/data/img/map.png" class="menu-icon" alt="Map" />`,
 	"rankingarchive": `<img src="/data/img/rankingarchive.png" class="menu-icon" alt="Map" />`,
+	"user": `<img src="/data/img/user.png" class="menu-icon" alt="User" />`,
 
 }
 
@@ -32,7 +33,13 @@ let __menu_content = `
 	<label for="menu-click" class="menu-btn"><span class="bold">${_("☰  Menu")}</span></label>
 	<header>
 		<ul id="menu-links">
-		<li class="menuitem bold"><a href="./">${__menu_icons["trainer"]} ${_("Trainer")}</a></li>
+		<li class="menuitem bold menu-dropdown">
+			<a href="./">${__menu_icons["trainer"]} ${_("Trainer")}</a>
+			<div class="menuitem menu-dropdown-content">
+				<a href="setups.html">${_("Public Setups")}</a>
+				<a href="mysetups.html">${_("My Setups")}</a>
+			</div>
+		</li>
 		<li class="menuitem bold"><a href="wz.html">${__menu_icons["wz"]} ${_("WZ status")}</a></li>
 		<li class="menuitem bold"><a href="bosses.html">${__menu_icons["bosses"]} ${_("Bosses status")}</a></li>
 		<li class="menuitem bold"><a href="bz.html">${__menu_icons["bz"]} ${_("BZ status")}</a></li>
@@ -64,18 +71,101 @@ let __menu_content = `
 			<div id="menu-lang-list" class="menu-lang-list"></div>
 		</div>
 		</li>
+		<li id="userLogin" style="display:none;" class="menuitem bold"><a onClick="">${__menu_icons["user"]} ${_("Login / Register")}</a></li>
+		<li id="userMenu" style="display:none;" class="menuitem bold menu-dropdown">
+			<a href="#">${__menu_icons["user"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
+				<div class="menuitem menu-dropdown-content" style="width:12em">
+					<small id="userMenuUsername"></small> - <small id="userMenuEmail"></small>
+					<small id="userMenuRole"></small>
+					<a id="userMenuSetups" href="/mysetups.html">${_("My Trainer Setups")}</a>
+					<button id="logoutButton">${_("Logout")}</button>
+				</div>
+		</li>
 		</ul>
+		<!-- login form -->
+		<div id="login-form" class="modal">
+			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="modal-content">
+				<h2>${_("Login")}</h2>
+				<form id="login-form-content">
+					<label for="username">${_("Username or e-mail address")}</label><br>
+					<input style="max-width:60%" type="text" id="username" name="username" required><br>
+					<label for="password">${_("Password")}</label><br>
+					<input style="max-width:60%" type="password" id="password" name="password" required><br>
+				</form>
+				<button id="loginButton">${_("Login")}</button><br>
+				<a id="closeLoginModal" class="close">&times; back</a><br>
+				<a id="registrationLink">${_("Register")}</a>
+			</div>
+			</div>
+		</div>
+		<style>
+			/* The Modal (background) */
+			.modal {
+				display: none; /* Hidden by default */
+				position: fixed; /* Stay in place */
+				z-index: 1; /* Sit on top */
+				left: 0;
+				top: 0;
+				padding-top: 60px; /* Location of the box */
+				width: 100%; /* Full width */
+				height: 100%; /* Full height */
+				overflow: auto; /* Enable scroll if needed */
+				background-color: rgb(0,0,0); /* Fallback color */
+				background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			}
+			/* Format the input fields */
+			input[type=text], input[type=password] {
+				width: 100%;
+				padding: 12px 20px;
+				margin: 8px 0;
+				display: inline-block;
+				border: 1px solid #ccc;
+				box-sizing: border-box;
+			}
+		</style>
+		<!-- end login form -->
+		<!-- registration form -->
+		<div id="registration-form" class="modal">
+			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="modal-content">
+				<h2>${_("Registration")}</h2>
+				<form id="registration-form-content">
+					<label for="username">${_("Username (only for login)")}</label><br>
+					<input style="max-width:60%" type="text" id="regUsername" name="username" required><br>
+					<label for="nickname">${_("Nickname (visible to other users)")}</label><br>
+					<input style="max-width:60%" type="text" id="regNickname" name="nickname" required><br>
+					<label for="email">${_("Email")}</label><br>
+					<input style="max-width:60%" type="text" id="regEmail" name="email" required><br>
+					<label for="password">${_("Password")}</label><br>
+					<input style="max-width:60%" type="password" id="regPassword" name="password" required><br>
+					<label for="password2">${_("Repeat password")}</label><br>
+					<input style="max-width:60%" type="password" id="regPassword2" name="password2" required><br>
+					<!-- CAPTCHA question -->
+					<div id="captchaQuestion"></div>
+					<input type="hidden" id="correctAnswer">
+					<input style="max-width:60%" type="text" id="captchaAnswer" name="captchaAnswer" required><br>
+				</form>
+									<button id="registrationButton">${_("Register")}</button><br>
+
+				<a id="closeRegistrationModal" class="close">&times; back</a>
+			</div>
+			</div>
+		</div>
+		<!-- end registration form -->
 	</header>
 `;
 
 let __menu_footer = `
 		<div id="tz"><div id="tztitle">${_("Timezone:")}&nbsp;</div><select id="tzchooser"></select></div>
-		<p><i>CoRT is a free and open source website, feel free to check out its
-		<a href="https://github.com/mascaldotfr/CoRT" target="_blank">source code</a>, and report
-		<a href="https://github.com/mascaldotfr/CoRT/wiki/Bug-reports" target="_blank">bugs</a>.
-		See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
-		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i></p>
-		<p> <!--VERSION-->Version: 20240713.093946
+		<p><i>CoRT is a free and open source website.</i></p>
+		<p>This is a fork of the <a href="https://github.com/mascaldotfr/CoRT" target="_blank">original CoRT project</a>. You can find the
+		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>, and report
+		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">bugs</a>.
+		<!-- See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
+		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i --></p>
+		<p> <!--VERSION-->Version: 20240713</p>
+		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">Changelog</a>
 `;
 
 $(document).ready(function() {
@@ -115,8 +205,174 @@ $(document).ready(function() {
 
 	create_tz_list("#tzchooser");
 
+	// event listener for the login form
+	$("#userLogin").on("click", function() {
+		$("#login-form").css("display", "block");
+	});
+
+	// event listener for the close button in the login form
+	$("#closeLoginModal").on("click", function() {
+		$("#login-form").css("display", "none");
+	});
+
+	// event listener for the login button
+	$("#loginButton").on("click", function() {
+		login();
+	});
+
+	// event listener for the logout button
+	$("#logoutButton").on("click", function() {
+		fetch(__api__market + "/logout", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status == "success") {
+				localStorage.removeItem("user");
+				// alert("Logout successful");
+				window.location.reload();
+			} else {
+				alert("Logout failed: " + data.message);
+			}
+		})
+	});
+
+	// event listener for the registration link
+	$("#registrationLink").on("click", function() {
+		$("#login-form").css("display", "none");
+		$("#registration-form").css("display", "block");
+		generateCaptcha();
+	});
+
+	// event listener for the close button in the registration form
+	$("#closeRegistrationModal").on("click", function() {
+		$("#registration-form").css("display", "none");
+	});
+
+	// event listener for the registration button
+	$("#registrationButton").on("click", function() {
+		register();
+	});
 });
 
+// after DOM is loaded, check if user is logged in
+$(document).ready(function() {
+	checkLogin();
+});
+
+function checkLogin() {
+		// fetch user data from API and display it
+	fetch(__api__market + "/user", {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.id) {
+			$("#userMenu").css("display", "inline-block");
+			$("#userMenuNickname").text(data.nickname);
+			$("#userMenuUsername").text(data.username);
+			$("#userMenuEmail").text(data.email);
+			$("#userMenuRole").text(data.role);
+		} else {
+			console.log("User not logged in");
+			$("#userLogin").css("display", "inline-block");
+		}
+	})
+	.catch(error => {
+		console.error("User login check failed: " + error);
+	});
+		
+
+}
+
+// function to handle the login form submission
+function login() {
+	// use username and password from the form
+	let username = $("#username").val();
+	let password = $("#password").val();
+	console.log("login", username, password)
+	fetch(__api__market + "/login", {
+		method: "POST",
+		body: JSON.stringify({login: username, password: password}),
+		headers: {
+			"Content-Type": "application/json"
+		}
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.status == "success") {
+			localStorage.setItem("user", username);
+			// alert("Login successful");
+			window.location.reload();
+		} else {
+			alert("Login failed: " + data.message);
+		}
+	})
+	.catch(error => {
+		alert("Login failed: " + error);
+	});
+}
+
+function register() {
+	// use username and password from the form
+	let username = $("#regUsername").val();
+	let nickname = $("#regNickname").val();
+	let email = $("#regEmail").val();
+	let password = $("#regPassword").val();
+	let password2 = $("#regPassword2").val();
+	console.log("register", username, nickname, email, password, password2)
+	if (password != password2) {
+		alert("Passwords do not match");
+		return;
+	}
+	// check CAPTCHA
+	let num1 = parseInt($("#correctAnswer").val());
+	let num2 = parseInt($("#captchaAnswer").val());
+	if (num1 + num2 != num1 + num2) {
+		alert("CAPTCHA answer is incorrect");
+		return;
+	} else {
+		console.log("CAPTCHA answer is correct");
+	}
+	fetch(__api__market + "/register", {
+		method: "POST",
+		body: JSON.stringify({username: username, nickname: nickname, email: email, password: password}),
+		headers: {
+			"Content-Type": "application/json"
+		}
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.status == "success") {
+			localStorage.setItem("user", username);
+			alert("Registration successful! Please confirm your E-Mail address.");
+			window.location.reload();
+		} else {
+			alert("Registration failed: " + data.message);
+		}
+	})
+	.catch(error => {
+		alert("Registration failed: " + error);
+	});
+}
+
+function generateCaptcha() {
+    const num1 = Math.floor(Math.random() * 10); // Generate a random number between 0 and 9
+    const num2 = Math.floor(Math.random() * 10); // Generate another random number between 0 and 9
+    const sum = num1 + num2; // Calculate the sum of these numbers
+
+    // Update the CAPTCHA question on the form
+    document.getElementById('captchaQuestion').textContent = `What is ${num1} + ${num2}?`;
+
+    // Store the correct answer in a hidden field for later verification
+    document.getElementById('correctAnswer').value = sum;
+}
 
 // get basic hit statistics
 function get_hits() {
@@ -138,4 +394,3 @@ window.addEventListener('scroll', function() {
 		document.getElementById('scroll-to-top').style.display = 'none';
 	}
 });
-

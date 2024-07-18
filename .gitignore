@@ -9,3 +9,7 @@ __pycache__**
 
 # for macOS users
 .DS_Store
+
+# server
+node_modules
+.env

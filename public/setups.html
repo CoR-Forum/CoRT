@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta property="og:image" content="/CoRT/favicon_512.png">
+		<title>Public Trainer Setups - Champions of Regnum</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses war warzone guerra status">
+		<meta name="description" content="Champions of Regnum trainer, war status, bosses respawn and bz countdowns">
+		<link rel="stylesheet" href="/css/style.css">
+		<link rel="icon" type="image/png" href="/favicon.png">
+		<link rel="apple-touch-icon" href="/favicon.png" sizes="192x192">
+		<script type="module" src="/js/menu.js"></script>
+	</head>
+	<body>
+		<div id="menu" class="card"></div>
+		<div id="main-container">
+			<div class="bugnum but on your side">
+				<noscript>
+					For full functionality of this site it is necessary to enable JavaScript.
+					Here are the <a href="https://www.enable-javascript.com/">
+						instructions how to enable JavaScript in your web browser</a>.
+				</noscript>
+			</div>
+			<h1 id="title">Public Trainer Setups</h1>
+			<div id="titleinfo">Setups shared by other users. To add your setup, save it in your account and change it to public.</div>
+			<!-- center>
+				<a href="rankingarchive.html"><button>Ra</button></a>
+				<a href="rankingarchive-valhalla.html"><button>Valhalla (abandoned)</button></a>
+			</!-->
+			<style>
+				.setupsTable {
+					width: 100%;
+				}
+				.setupsTable th, .setupsTable td {
+					padding: 8px;
+					text-align: left;
+				}
+			</style>
+			<div class="card center">
+				<!-- table for setups -->
+				<table id="setups" class="setupsTable">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Class</th>
+							<th>Game Version</th>
+							<th>Created by</th>
+							<th>Rating</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+				<!-- rating modal -->
+				 <style>
+					/* The Modal (background) */
+				 </style>
+				<dialog id="ratingModal">
+						<h2>Rate this setup</h2>
+						<div id="ratingForm">
+							<input type="hidden" id="setupId" name="setupId">
+							<h3>Rating (1-5)</h3>
+							<input type="number" id="rating" name="rating" min="1" max="5" required><br>
+							<input type="checkbox" id="recommendation" name="recommendation">
+							<label for="recommendation">I recommend this setup</label><br>
+							<h3>Review</h3>
+							<textarea id="review" name="review" rows="5" cols="50"></textarea>
+						</div>
+						<button id="cancelRating">Cancel</button>
+						<button id="deleteRating">Delete Rating</button>
+						<button id="submitRating">Submit Rating</button>
+		</dialog>
+		<!-- end rating modal -->
+		<!-- reviews dialog -->
+		<dialog id="reviewsDialog">
+			<h3>All Reviews</h3>
+			<div id="reviews"></div>			
+			<button id="closeReviews">Close</button>
+		</dialog>
+		<!-- end reviews dialog -->
+		</div>
+		<script>
+			// reviews dialog button event listener
+			// fetch the reviews from the API and show them in the dialog as formatted elements
+			document.getElementById('setups').addEventListener('click', function(event) {
+				if (event.target.id === 'allRatingsButton') {
+					var dialog = document.getElementById('reviewsDialog');
+					var close = document.getElementById('closeReviews');
+					dialog.showModal();
+					close.onclick = function() {
+						dialog.close();
+					}
+					var setupId = event.target.parentElement.parentElement.cells[0].innerHTML;
+					fetch('/api/v1/trainer/ratings/' + setupId)
+						.then(response => response.json())
+						.then(data => {
+							var reviews = data;
+							var reviewsDiv = document.getElementById('reviews');
+							reviewsDiv.innerHTML = '';
+							for (var i = 0; i < reviews.length; i++) {
+								var review = reviews[i];
+								var reviewDiv = document.createElement('div');
+								reviewDiv.innerHTML = `
+									<b>${review.nickname}</b> ${generateStars(review.rating)} ${review.recommendation === 1 ? 'Recommended &#10004;' : 'Not recommended &#10006;'}<br>
+									${review.review ? `<i>${review.review}</i>` : ''}
+								`;
+
+								reviewsDiv.appendChild(reviewDiv);
+							}
+						});
+				}
+			});
+
+			function generateStars(rating) {
+									let stars = '';
+									for (let i = 1; i <= 5; i++) {
+										const star = i <= rating ? '★' : '☆';
+										stars += `<span>${star}</span>`;
+									}
+									return stars;
+								}
+
+			// fetch the setups from API
+			fetch('/api/v1/trainer/setups')
+				.then(response => response.json())
+				.then(data => {
+					var setups = data;
+					var table = document.getElementById('setups').getElementsByTagName('tbody')[0];
+					// if there are no setups, show a message
+					if (setups.length === 0) {
+						var row = table.insertRow(-1);
+						var cell = row.insertCell(0);
+						cell.colSpan = 2;
+						cell.innerHTML = 'There are no public setups yet. Create one by clicking the "Save" button in the <a href="/">trainer</a>, then set it to public.';
+						return;
+					}
+
+					for (var i = 0; i < setups.length; i++) {
+						// sort setups by rating
+						setups.sort((a, b) => b.rating - a.rating);
+						
+						var setup = setups[i];
+						var row = table.insertRow(-1);
+
+						// put the ID in a hidden cell
+						var id = row.insertCell(0);
+						id.innerHTML = setup.id;
+						id.style.display = 'none';
+
+						var name = row.insertCell(1);
+						name.innerHTML = '<a href="/?t=' + setup.url + '">' + setup.name + '</a>'
+
+						var setup_class = row.insertCell(2);
+						setup_class.innerHTML = setup.setup_class + ' ' + setup.setup_level;
+
+						var setup_version = row.insertCell(3);
+						setup_version.innerHTML = setup.setup_version;
+
+						var created = row.insertCell(4);
+						// convert the date to a human-readable format without the time
+						var date = new Date(setup.created_at);
+						created.innerHTML = setup.nickname + ', ' + date.toLocaleDateString();
+
+						// rating
+						var rating = row.insertCell(5);
+						rating.innerHTML = generateStars(setup.rating) + ' (' + setup.ratings + ') &#9829; x' + (setup.recommendations || 0) + '<br><button id="rateNowButton">Rate now</button> <button id="allRatingsButton">All Reviews</button>';
+						
+					}
+				});
+			
+		// rate now button event listener
+		// show the modal when the button is clicked
+		// fetch the API and check if the user has already rated this setup, if yes, prefill the form
+		document.getElementById('setups').addEventListener('click', function(event) {
+			if (event.target.id === 'rateNowButton') {
+				var modal = document.getElementById('ratingModal');
+				var span = document.getElementsByClassName('close')[0];
+				modal.style.display = 'block';
+				span.onclick = function() {
+					modal.style.display = 'none';
+				}
+				window.onclick = function(event) {
+					if (event.target == modal) {
+						modal.style.display = 'none';
+					}
+				}
+
+				var setupId = event.target.parentElement.parentElement.cells[0].innerHTML;
+				fetch('/api/v1/trainer/myratings/' + setupId)
+				.then(response => response.json())
+					.then(data => {
+							document.getElementById('setupId').value = setupId;
+							document.getElementById('rating').value = data.rating;
+							// format the recommendation value (0 and 1 to Yes and No)
+							document.getElementById('recommendation').checked = data.recommendation === 1;
+							document.getElementById('review').value = data.review;
+					});
+			}
+		});
+
+		// submit rating form button event listener
+		document.getElementById('submitRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			// extract the data from the form
+			var setupId = document.getElementById('setupId').value;
+			// send the data to the API
+			fetch('/api/v1/trainer/rate/' + setupId, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					rating: document.getElementById('rating').value,
+					recommendation: document.getElementById('recommendation').checked ? 1 : 0,
+					review: document.getElementById('review').value
+				})
+			})
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'success') {
+						alert('Rating submitted successfully');
+						// document.getElementById('ratingModal').style.display = 'none';
+						location.reload();
+					} else if (data.status === 'error') {
+						alert(data.message);
+					} else {
+						alert('An error occurred while submitting the rating');
+					}
+				});
+
+		});
+
+		// delete rating button event listener
+		document.getElementById('deleteRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			// extract the data from the form
+			var setupId = document.getElementById('setupId').value;
+			// show confirmation dialog
+			if (confirm("Are you sure you want to delete your rating?")) {
+				// send the data to the API
+				fetch('/api/v1/trainer/rate/' + setupId, {
+					method: 'DELETE'
+				})
+					.then(response => response.json())
+					.then(data => {
+						if (data.status === 'success') {
+							alert('Rating deleted successfully');
+							// document.getElementById('ratingModal').style.display = 'none';
+							location.reload();
+						} else {
+							alert('An error occurred while deleting the rating');
+						}
+					});
+			}
+		});
+
+		// cancel rating button event listener
+		document.getElementById('cancelRating').addEventListener('click', function(event) {
+			event.preventDefault();
+			document.getElementById('ratingModal').style.display = 'none';
+		});
+
+		
+	
+				
+
+
+				
+				
+			
+		</script>
+		<div id="footer" class="card">
+			<div id="footer-menu"></div>
+			<!-- Matomo -->
+			<script>
+				var _paq = window._paq = window._paq || [];
+				/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+				_paq.push(['trackPageView']);
+				_paq.push(['enableLinkTracking']);
+				(function() {
+				var u="//analytics.treudler.net/";
+				_paq.push(['setTrackerUrl', u+'matomo.php']);
+				_paq.push(['setSiteId', '20']);
+				var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+				g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+				})();
+			</script>
+			<noscript><p><img referrerpolicy="no-referrer-when-downgrade" src="//analytics.treudler.net/matomo.php?idsite=20&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+			<!-- End Matomo Code -->
+		</div>	</body>
+</html>

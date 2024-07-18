@@ -16,6 +16,30 @@ page, and anonymous setup collection (see the `collect` directory) which by
 default only works for https://mascaldotfr.github.io and can be completely
 skipped.
 
+# About the Marketplace
+
+The marketplace server is required for the Market to run, right now there is
+no functionality tho.
+
+### Example .env file (required)
+
+```
+API_PATH=/api/v1
+POST=8080
+HOST=http://localhost
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=market
+DB_USER=market
+DB_PASS=market
+```
+
+**Defaults**
+
+API_PATH: /api/v1
+PORT: 8080
+HOST: http://localhost
+
 ## Known issues
 
 * ~display on mobile devices is weird due to flex in the WM skill row. it's not
