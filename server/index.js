@@ -103,7 +103,10 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
   registration_ip VARCHAR(255),
   active BOOLEAN DEFAULT FALSE,
   last_login TIMESTAMP,
-  last_ip VARCHAR(255)
+  last_ip VARCHAR(255),
+  password_reset_key VARCHAR(255),
+  password_reset_expires TIMESTAMP,
+  password_reset_ip VARCHAR(255)
 )`, (err, result) => {
   if (err) {
     logger.error('Error creating users table:', err);
@@ -353,6 +356,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Function to check password requirements
+function checkPasswordRequirements(password) {
+  // password must be at least 8 characters long and contain at least one letter and one number
+  return password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/);
+}
+
+const passwordDoesNotMeetRequirements = 'Password must be 8 characters long and contain at least one letter and one number.';
+
 // USERS
 // register - register a new user with email, password, username, nickname.
 // encrypt password with bcrypt
@@ -386,9 +397,9 @@ app.post(API_PATH + '/register', (req, res) => {
     return;
   }
 
-  // password must be at least 8 characters long and contain at least one letter, one number, and one special character
-  if (!password.match(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/)) {
-    res.json({ status: 'error', message: 'Password bust be 8 characters long and contain at least one letter, one number and one specialZ' });
+  // Check password requirements
+  if (!checkPasswordRequirements(password)) {
+    res.json({ status: 'error', message: passwordDoesNotMeetRequirements });
     return;
   }
 
@@ -520,6 +531,87 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
     });
   });
 });
+
+// initiate password reset - send email with password reset link
+// user enters email or username, check if user exists, generate password reset key, send email with password reset link
+app.post(API_PATH + '/password/reset', (req, res) => {
+  const login = req.body.login;
+  logger.info('Initiating password reset for: ' + login);
+
+  // check if login is email or username
+  const isEmail = login.includes('@');
+  const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
+  db.query(query, [login], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ status: 'error', message: 'Invalid login' });
+      return;
+    }
+    const user = result[0];
+    const password_reset_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const password_reset_expires = new Date();
+    password_reset_expires.setHours(password_reset_expires.getHours() + 1);
+    const password_reset_ip = req.connection.remoteAddress;
+    db.query('UPDATE users SET password_reset_key = ?, password_reset_expires = ?, password_reset_ip = ? WHERE id = ?', [password_reset_key, password_reset_expires, password_reset_ip, user.id], (err, result) => {
+      if (err) {
+        console.error('Error updating password reset key in database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      // Send password reset email
+      const subject = 'Password Reset';
+      const text = 'Please click the link below to reset your password:';
+      const html = `<p>Please click the link below to reset your password:</p><a href="${HOST}/?pwresetkey=${password_reset_key}">${HOST}/?pwresetkey=${password_reset_key}</a>`;
+      sendEmail(user.id, subject, text, html);
+      res.json({ status: 'success', message: 'Password reset initiated' });
+    });
+  });
+});
+
+// reset password - reset password with password reset key
+// user enters new password, check if password reset key is valid and not expired, update password
+app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
+  const password_reset_key = req.params.password_reset_key;
+  const { password } = req.body;
+  // check password requirements
+  if (!checkPasswordRequirements(password)) {
+    res.json({ status: 'error', message: passwordDoesNotMeetRequirements });
+    return;
+  }
+  logger.info('Resetting password with password reset key: ' + password_reset_key, password);
+  db.query('SELECT * FROM users WHERE password_reset_key = ? AND password_reset_expires > ?', [password_reset_key, new Date()], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ status: 'error', message: 'Invalid password reset key or expired' });
+      return;
+    }
+    const user = result[0];
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        console.error('Error hashing password: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      db.query('UPDATE users SET password = ?, password_reset_key = NULL, password_reset_expires = NULL, password_reset_ip = NULL WHERE id = ?', [hash, user.id], (err, result) => {
+        if (err) {
+          console.error('Error updating password in database: ' + err);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+        res.json({ status: 'success', message: 'Password reset' });
+      });
+    });
+  });
+});
+
 
 // retrieve own user
 app.get(API_PATH + '/user', checkAuth, (req, res) => {
@@ -717,15 +809,11 @@ function recalculateRating(id) {
   });
 }
 
-
-
 // delete own trainer setup
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   logger.info('Deleting trainer setup: ' + id);
-  
-  // Delete the trainer setup
-  db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+    db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
       console.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
