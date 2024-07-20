@@ -552,7 +552,7 @@ app.post(API_PATH + '/password/reset', (req, res) => {
       return;
     }
     const user = result[0];
-    const password_reset_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const password_reset_key = Math.random().toString(36).substring(2, 62);
     const password_reset_expires = new Date();
     password_reset_expires.setHours(password_reset_expires.getHours() + 1);
     const password_reset_ip = req.connection.remoteAddress;
