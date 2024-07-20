@@ -93,6 +93,9 @@ db.connect((err) => {
 db.query(`CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
+  email_verified BOOLEAN DEFAULT FALSE,
+  email_verification_key VARCHAR(255),
+  email_verification_expires TIMESTAMP,
   password VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   nickname VARCHAR(255) NOT NULL,
@@ -113,6 +116,27 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
     throw err;
   }
   logger.info('Table users created or updated');
+});
+
+// characters
+db.query(`CREATE TABLE IF NOT EXISTS characters (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  realm VARCHAR(255) NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  level INT NOT NULL,
+  class VARCHAR(255) NOT NULL CHECK (class IN ('warrior', 'archer', 'mage', 'knight', 'barbarian', 'warlock', 'conjurer', 'hunter', 'marksman')),
+  warmaster BOOLEAN DEFAULT FALSE,
+  champion BOOLEAN DEFAULT FALSE,
+  realm_points INT DEFAULT 0
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating characters table:', err);
+    throw err;
+  }
+  logger.info('Table characters created or updated');
 });
 
 // markets
@@ -532,6 +556,27 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
   });
 });
 
+// confirm email - confirm email with email verification key
+app.get(API_PATH + '/verify/:email_verification_key', (req, res) => {
+  const email_verification_key = req.params.email_verification_key;
+  logger.info('Verifying email with email verification key: ' + email_verification_key);
+  db.query('UPDATE users SET email_verified = TRUE WHERE email_verification_key = ?', [email_verification_key], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    db.query('UPDATE users SET email_verification_key = NULL WHERE email_verification_key = ?', [email_verification_key], (err, result) => {
+      if (err) {
+        console.error('Error querying database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.send('Email verified. You can now login.');
+    });
+  });
+});
+
 // initiate password reset - send email with password reset link
 // user enters email or username, check if user exists, generate password reset key, send email with password reset link
 app.post(API_PATH + '/password/reset', (req, res) => {
@@ -567,7 +612,7 @@ app.post(API_PATH + '/password/reset', (req, res) => {
       const text = 'Please click the link below to reset your password:';
       const html = `<p>Please click the link below to reset your password:</p><a href="${HOST}/?pwresetkey=${password_reset_key}">${HOST}/?pwresetkey=${password_reset_key}</a>`;
       sendEmail(user.id, subject, text, html);
-      res.json({ status: 'success', message: 'Password reset initiated' });
+      res.json({ status: 'success', message: 'A password reset link has been sent to your email address.' });
     });
   });
 });
@@ -622,6 +667,63 @@ app.get(API_PATH + '/user', checkAuth, (req, res) => {
             return;
         }
         res.send(result[0]);
+    });
+});
+
+// update own user
+// if the e-mail is changed, send a verification e-mail
+app.put(API_PATH + '/user', checkAuth, (req, res) => {
+    const { email, nickname } = req.body;
+    const updated_at = new Date();
+    logger.info('Updating user: ' + email, nickname);
+
+    // Check if email, username and nickname are valid
+    if (!email.includes('@') || !email.includes('.') || email.length < 5 || email.length > 255) {
+      res.json({ status: 'error', message: 'Invalid email' });
+      return;
+    }
+    // nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces
+    if (!nickname.match(/^[a-zA-Z0-9_ ]{3,20}$/)) {
+      res.json({ status: 'error', message: 'Invalid nickname' });
+      return;
+    }
+    
+    db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
+        if (err) {
+            console.error('Error querying database: ' + err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+        const user = result[0];
+        // Check if email is changed
+        if (email !== user.email) {
+          const email_verification_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          const email_verification_expires = new Date();
+          email_verification_expires.setHours(email_verification_expires.getHours() + 1);
+          db.query('UPDATE users SET email = ?, nickname = ?, updated_at = ?, email_verification_key = ?, email_verification_expires = ? WHERE id = ?', [email, nickname, updated_at, email_verification_key, email_verification_expires, req.session.userId], (err, result) => {
+            if (err) {
+              console.error('Error updating user in database: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+            // Send email verification email
+            const subject = 'Email Verification';
+            const text = 'Please click the link below to verify your email address:';
+            const html = `<p>Please click the link below to verify your email address:</p><a href="${HOST}/api/v1/verify/${email_verification_key}">${HOST}/api/v1/verify/${email_verification_key}</a>`;
+            sendEmail(email, subject, text, html);
+            res.json({ status: 'success', message: 'User updated. Please verify your email address.' });
+            return;
+          });
+        } else {
+          db.query('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?', [nickname, updated_at, req.session.userId], (err, result) => {
+            if (err) {
+              console.error('Error updating user in database: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+            res.json({ status: 'success', message: 'User updated' });
+          });
+        }
     });
 });
 

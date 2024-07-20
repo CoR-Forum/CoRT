@@ -76,7 +76,7 @@ let __menu_content = `
 			<a href="#">${__menu_icons["user"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
 				<div class="menuitem menu-dropdown-content" style="width:12em">
 					<small id="userMenuUsername"></small> - <small id="userMenuEmail"></small>
-					<small id="userMenuRole"></small>
+					<a href="/account.html">My Account</a>
 					<a id="userMenuSetups" href="/mysetups.html">${_("My Trainer Setups")}</a>
 					<button id="logoutButton">${_("Logout")}</button>
 				</div>
