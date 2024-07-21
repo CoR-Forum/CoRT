@@ -34,10 +34,10 @@
 					<small>Cannot be changed.</small>
 					<input type="text" id="username" name="username" disabled>
 					<label for="nickname">Nickname</label>
-					<small>Visible to other users in public setups and the marketplace.</small>
+					<small>Visible to other users in public setups and marketplace.</small>
 					<input type="text" id="nickname" name="nickname" required>
 					<label for="email">Email</label>
-					<small>Used for password reset and account recovery.</small>
+					<small>Used for password reset, account recovery and notifications.</small>
 					<input type="text" id="email" name="email" required>
 					<button type="submit">Save</button>
 				</form>
@@ -91,7 +91,7 @@
 						console.log(data);
 						alert(data.message);
 						location.reload();
-						
+
 					})
 					.catch(error => console.error('Error:', error));
 			});
