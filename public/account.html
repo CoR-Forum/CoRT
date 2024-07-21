@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta property="og:image" content="/CoRT/favicon_512.png">
+		<title>My Account - Champions of Regnum</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses war warzone guerra status">
+		<meta name="description" content="Champions of Regnum trainer, war status, bosses respawn and bz countdowns">
+		<link rel="stylesheet" href="/css/style.css">
+		<link rel="icon" type="image/png" href="/favicon.png">
+		<link rel="apple-touch-icon" href="/favicon.png" sizes="192x192">
+		<script type="module" src="/js/menu.js"></script>
+	</head>
+	<body>
+		<div id="menu" class="card"></div>
+		<div id="main-container">
+			<div class="bugnum but on your side">
+				<noscript>
+					For full functionality of this site it is necessary to enable JavaScript.
+					Here are the <a href="https://www.enable-javascript.com/">
+						instructions how to enable JavaScript in your web browser</a>.
+				</noscript>
+			</div>
+			<h1 id="title">Your Account</h1>
+			<!-- centered buttons to initiate password reset -->
+			<div class="card">
+				<button id="resetPasswordButton">Reset Password</button>
+			</div>
+			<div class="card">
+				<!-- fields for account -->
+				<form style="max-width:30%" id="editUser">
+					<label for="username">Username</label>
+					<small>Cannot be changed.</small>
+					<input type="text" id="username" name="username" disabled>
+					<label for="nickname">Nickname</label>
+					<small>Visible to other users in public setups and marketplace.</small>
+					<input type="text" id="nickname" name="nickname" required>
+					<label for="email">Email</label>
+					<small>Used for password reset, account recovery and notifications.</small>
+					<input type="text" id="email" name="email" required>
+					<button type="submit">Save</button>
+				</form>
+			</div>
+		</div>
+		<script>
+			// fetch user data and fill form
+			fetch('/api/v1/user')
+				.then(response => response.json())
+				.then(data => {
+					console.log(data);
+					document.getElementById('username').value = data.username;
+					document.getElementById('nickname').value = data.nickname;
+					document.getElementById('email').value = data.email;
+					// add event listener to the password reset button and submit an API request on click with the email
+					document.getElementById('resetPasswordButton').addEventListener('click', () => {
+						fetch('/api/v1/password/reset', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({
+								login: data.email
+							})
+						})
+							.then(response => response.json())
+							.then(data => {
+								console.log(data);
+								alert(data.message);
+							})
+							.catch(error => console.error('Error:', error));
+					});
+				})
+				.catch(error => console.error('Error:', error));
+
+			// add event listener to the form and submit an API request on submit with the new data
+			document.getElementById('editUser').addEventListener('submit', event => {
+				event.preventDefault();
+				fetch('/api/v1/user', {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						nickname: document.getElementById('nickname').value,
+						email: document.getElementById('email').value
+					})
+				})
+					.then(response => response.json())
+					.then(data => {
+						console.log(data);
+						alert(data.message);
+						location.reload();
+
+					})
+					.catch(error => console.error('Error:', error));
+			});
+		</script>
+		<div id="footer" class="card">
+			<div id="footer-menu"></div>
+			<!-- Matomo -->
+			<script>
+				var _paq = window._paq = window._paq || [];
+				/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+				_paq.push(['trackPageView']);
+				_paq.push(['enableLinkTracking']);
+				(function() {
+				var u="//analytics.treudler.net/";
+				_paq.push(['setTrackerUrl', u+'matomo.php']);
+				_paq.push(['setSiteId', '20']);
+				var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+				g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+				})();
+			</script>
+			<noscript><p><img referrerpolicy="no-referrer-when-downgrade" src="//analytics.treudler.net/matomo.php?idsite=20&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+			<!-- End Matomo Code -->
+		</div>	</body>
+</html>

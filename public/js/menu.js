@@ -75,8 +75,8 @@ let __menu_content = `
 		<li id="userMenu" style="display:none;" class="menuitem bold menu-dropdown">
 			<a href="#">${__menu_icons["user"]} ${_("Welcome")}, <b id="userMenuNickname"></b></a>
 				<div class="menuitem menu-dropdown-content" style="width:12em">
-					<small id="userMenuUsername"></small> - <small id="userMenuEmail"></small>
-					<small id="userMenuRole"></small>
+					<small id="userMenuUsername"></small><br><small id="userMenuEmail"></small>
+					<a href="/account.html">My Account</a>
 					<a id="userMenuSetups" href="/mysetups.html">${_("My Trainer Setups")}</a>
 					<button id="logoutButton">${_("Logout")}</button>
 				</div>
@@ -95,8 +95,8 @@ let __menu_content = `
 				</form>
 				<button id="loginButton">${_("Login")}</button><br>
 				<a id="closeLoginModal" class="close">&times; back</a><br>
-				<a id="registrationLink">${_("Register")}</a>
-			</div>
+				<a id="resetPasswordLink" class="resetPassword">Reset Password</a><br>
+				<a id="registrationLink">${_("Register")}</a>			</div>
 			</div>
 		</div>
 		<style>
@@ -153,6 +153,39 @@ let __menu_content = `
 			</div>
 		</div>
 		<!-- end registration form -->
+		<!-- password reset init form -->
+		<div id="password-reset-init-form" class="modal">
+			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="modal-content">
+				<h2>${_("Password reset")}</h2>
+				<form id="password-reset-init-form-content">
+					<label for="email">${_("Email or Username")}</label><br>
+					<input style="max-width:60%" type="text" id="resetEmail" name="email" required><br>
+				</form>
+				<button id="passwordResetInitButton">${_("Send password reset link")}</button><br>
+				<a id="closePasswordResetInitModal" class="close">&times; back</a>
+			</div>
+			</div>
+		</div>
+		<!-- end password reset init form -->
+		<!-- password reset form -->
+		<div id="password-reset-form" class="modal">
+			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="modal-content">
+				<h2>${_("Password reset")}</h2>
+				<form id="password-reset-form-content">
+					<label for="passwordResetKey">${_("Reset Key")}</label><br>
+					<input style="max-width:60%" type="text" id="passwordResetKey" name="key" required disabled><br>
+					<label for="password">${_("New password")}</label><br>
+					<input style="max-width:60%" type="password" id="resetPassword" name="password" required><br>
+					<label for="password2">${_("Repeat new password")}</label><br>
+					<input style="max-width:60%" type="password" id="resetPassword2" name="password2" required><br>
+				</form>
+				<button id="passwordResetButton">${_("Reset password")}</button><br>
+				<a id="closePasswordResetModal" class="close">&times; back</a>
+			</div>
+			</div>
+		</div>
 	</header>
 `;
 
@@ -256,6 +289,79 @@ $(document).ready(function() {
 	$("#registrationButton").on("click", function() {
 		register();
 	});
+
+	// event listener for the password reset link
+	$("#resetPasswordLink").on("click", function() {
+		$("#login-form").css("display", "none");
+		$("#password-reset-init-form").css("display", "block");
+	});
+
+	// event listener for the close button in the password reset init form
+	$("#closePasswordResetInitModal").on("click", function() {
+		$("#password-reset-init-form").css("display", "none");
+	});
+
+	// event listener for the password reset init button
+	$("#passwordResetInitButton").on("click", function() {
+		let login = $("#resetEmail").val();
+		fetch(__api__market + "/password/reset", {
+			method: "POST",
+			body: JSON.stringify({login: login}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status == "success") {
+				alert("Password reset link sent to your E-Mail address");
+			} else {
+				alert("Password reset failed: " + data.message);
+			}
+		});
+	});
+
+	// if the url contains a password reset key, show the password reset form and prefill the key
+	let url = new URL(window.location.href);
+	let resetkey = url.searchParams.get("pwresetkey");
+	if (resetkey) {
+		$("#password-reset-init-form").css("display", "none");
+		$("#password-reset-form").css("display", "block");
+		$("#passwordResetKey").val(resetkey);
+	}
+
+	// event listener for the close button in the password reset form
+	$("#closePasswordResetModal").on("click", function() {
+		$("#password-reset-form").css("display", "none");
+	});
+
+	// event listener for the password reset button
+	$("#passwordResetButton").on("click", function() {
+		let key = $("#passwordResetKey").val();
+		let password = $("#resetPassword").val();
+		let password2 = $("#resetPassword2").val();
+		if (password != password2) {
+			alert("Passwords do not match");
+			return;
+		}
+		fetch(__api__market + "/password/reset/" + key, {
+			method: "POST",
+			body: JSON.stringify({password: password}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status == "success") {
+				alert("Password reset successful");
+				window.location.href = "/index.html";
+			} else {
+				alert("Password reset failed: " + data.message);
+			}
+		});
+	});
+	
 });
 
 // after DOM is loaded, check if user is logged in
