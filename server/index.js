@@ -556,27 +556,6 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
   });
 });
 
-// confirm email - confirm email with email verification key
-app.get(API_PATH + '/verify/:email_verification_key', (req, res) => {
-  const email_verification_key = req.params.email_verification_key;
-  logger.info('Verifying email with email verification key: ' + email_verification_key);
-  db.query('UPDATE users SET email_verified = TRUE WHERE email_verification_key = ?', [email_verification_key], (err, result) => {
-    if (err) {
-      console.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-    db.query('UPDATE users SET email_verification_key = NULL WHERE email_verification_key = ?', [email_verification_key], (err, result) => {
-      if (err) {
-        console.error('Error querying database: ' + err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-      res.send('Email verified. You can now login.');
-    });
-  });
-});
-
 // initiate password reset - send email with password reset link
 // user enters email or username, check if user exists, generate password reset key, send email with password reset link
 app.post(API_PATH + '/password/reset', (req, res) => {
@@ -697,24 +676,38 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
         const user = result[0];
         // Check if email is changed
         if (email !== user.email) {
-          const email_verification_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-          const email_verification_expires = new Date();
-          email_verification_expires.setHours(email_verification_expires.getHours() + 1);
-          db.query('UPDATE users SET email = ?, nickname = ?, updated_at = ?, email_verification_key = ?, email_verification_expires = ? WHERE id = ?', [email, nickname, updated_at, email_verification_key, email_verification_expires, req.session.userId], (err, result) => {
+          db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
             if (err) {
-              console.error('Error updating user in database: ' + err);
+              console.error('Error querying database: ' + err);
               res.status(500).send('Internal Server Error');
               return;
             }
-            // Send email verification email
-            const subject = 'Email Verification';
-            const text = 'Please click the link below to verify your email address:';
-            const html = `<p>Please click the link below to verify your email address:</p><a href="${HOST}/api/v1/verify/${email_verification_key}">${HOST}/api/v1/verify/${email_verification_key}</a>`;
-            sendEmail(email, subject, text, html);
-            res.json({ status: 'success', message: 'User updated. Please verify your email address.' });
-            return;
+            if (result.length > 0) {
+              res.json({ status: 'error', message: 'Email is already in use' });
+              return;
+            }
+            checkNickname();
           });
         } else {
+          checkNickname();
+        }
+
+        function checkNickname() {
+          db.query('SELECT * FROM users WHERE nickname = ?', [nickname], (err, result) => {
+            if (err) {
+              console.error('Error querying database: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+            if (result.length > 0) {
+              res.json({ status: 'error', message: 'Nickname is already in use' });
+              return;
+            }
+            updateUserInfo();
+          });
+        }
+
+        function updateUserInfo() {
           db.query('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?', [nickname, updated_at, req.session.userId], (err, result) => {
             if (err) {
               console.error('Error updating user in database: ' + err);
@@ -725,6 +718,33 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
           });
         }
     });
+});
+
+// confirm email - confirm email with email verification key
+// if the key is expired, send a new verification e-mail
+app.get(API_PATH + '/user/email/verify/:email_verification_key', (req, res) => {
+  const email_verification_key = req.params.email_verification_key;
+  logger.info('Verifying email with email verification key: ' + email_verification_key);
+  db.query('SELECT * FROM users WHERE email_verification_key = ? AND email_verification_expires > ?', [email_verification_key, new Date()], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ status: 'error', message: 'Invalid email verification key or expired' });
+      return;
+    }
+    const user = result[0];
+    db.query('UPDATE users SET email_verified = TRUE, email_verification_key = NULL, email_verification_expires = NULL WHERE id = ?', [user.id], (err, result) => {
+      if (err) {
+        console.error('Error updating email verification in database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json({ status: 'success', message: 'Email verified' });
+    });
+  });
 });
 
 // create trainer setup
