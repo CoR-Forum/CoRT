@@ -164,7 +164,7 @@ let __menu_footer = `
 		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">bugs</a>.
 		<!-- See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
 		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i --></p>
-		<p> <!--VERSION-->Version: 20240718</p>
+		<p> <!--VERSION-->Version: 20240721</p>
 		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">Changelog</a>
 `;
 
