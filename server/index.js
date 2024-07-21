@@ -477,7 +477,7 @@ app.post(API_PATH + '/login', (req, res) => {
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
   db.query(query, [login], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -493,7 +493,7 @@ app.post(API_PATH + '/login', (req, res) => {
     const user = result[0];
     bcrypt.compare(password, user.password, (err, same) => {
       if (err) {
-        console.error('Error comparing passwords: ' + err);
+        logger.error('Error comparing passwords: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
@@ -509,7 +509,7 @@ app.post(API_PATH + '/login', (req, res) => {
         const last_ip = req.connection.remoteAddress;
         db.query('UPDATE users SET last_login = ?, last_ip = ? WHERE id = ?', [last_login, last_ip, user.id], (err, result) => {
           if (err) {
-            console.error('Error updating last_login and last_ip: ' + err);
+            logger.error('Error updating last_login and last_ip: ' + err);
             res.status(500).send('Internal Server Error');
             return;
           }
@@ -541,13 +541,13 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
   logger.info('Activating user with registration key: ' + registration_key);
   db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [registration_key], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
     db.query('UPDATE users SET registration_key = NULL WHERE registration_key = ?', [registration_key], (err, result) => {
       if (err) {
-        console.error('Error querying database: ' + err);
+        logger.error('Error querying database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
@@ -567,7 +567,7 @@ app.post(API_PATH + '/password/reset', (req, res) => {
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
   db.query(query, [login], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -582,7 +582,7 @@ app.post(API_PATH + '/password/reset', (req, res) => {
     const password_reset_ip = req.connection.remoteAddress;
     db.query('UPDATE users SET password_reset_key = ?, password_reset_expires = ?, password_reset_ip = ? WHERE id = ?', [password_reset_key, password_reset_expires, password_reset_ip, user.id], (err, result) => {
       if (err) {
-        console.error('Error updating password reset key in database: ' + err);
+        logger.error('Error updating password reset key in database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
@@ -609,7 +609,7 @@ app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
   logger.info('Resetting password with password reset key: ' + password_reset_key, password);
   db.query('SELECT * FROM users WHERE password_reset_key = ? AND password_reset_expires > ?', [password_reset_key, new Date()], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -620,13 +620,13 @@ app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
     const user = result[0];
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) {
-        console.error('Error hashing password: ' + err);
+        logger.error('Error hashing password: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
       db.query('UPDATE users SET password = ?, password_reset_key = NULL, password_reset_expires = NULL, password_reset_ip = NULL WHERE id = ?', [hash, user.id], (err, result) => {
         if (err) {
-          console.error('Error updating password in database: ' + err);
+          logger.error('Error updating password in database: ' + err);
           res.status(500).send('Internal Server Error');
           return;
         }
@@ -641,7 +641,7 @@ app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
 app.get(API_PATH + '/user', checkAuth, (req, res) => {
     db.query('SELECT id, email, username, nickname, role FROM users WHERE id = ?', [req.session.userId], (err, result) => {
         if (err) {
-            console.error('Error querying database: ' + err);
+            logger.error('Error querying database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
         }
@@ -669,7 +669,7 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
     
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
         if (err) {
-            console.error('Error querying database: ' + err);
+            logger.error('Error querying database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
         }
@@ -678,7 +678,7 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
         if (email !== user.email) {
           db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
             if (err) {
-              console.error('Error querying database: ' + err);
+              logger.error('Error querying database: ' + err);
               res.status(500).send('Internal Server Error');
               return;
             }
@@ -686,16 +686,24 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
               res.json({ status: 'error', message: 'Email is already in use' });
               return;
             }
-            checkNickname();
+            // check if nickname is changed
+            if (nickname !== user.nickname) {
+              checkNickname();
+            }
           });
         } else {
-          checkNickname();
+          // check if nickname is changed
+          if (nickname !== user.nickname) {
+            checkNickname();
+          } else {
+            updateUserInfo();
+          }
         }
 
         function checkNickname() {
           db.query('SELECT * FROM users WHERE nickname = ?', [nickname], (err, result) => {
             if (err) {
-              console.error('Error querying database: ' + err);
+              logger.error('Error querying database: ' + err);
               res.status(500).send('Internal Server Error');
               return;
             }
@@ -710,7 +718,7 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
         function updateUserInfo() {
           db.query('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?', [nickname, updated_at, req.session.userId], (err, result) => {
             if (err) {
-              console.error('Error updating user in database: ' + err);
+              logger.error('Error updating user in database: ' + err);
               res.status(500).send('Internal Server Error');
               return;
             }
@@ -727,7 +735,7 @@ app.get(API_PATH + '/user/email/verify/:email_verification_key', (req, res) => {
   logger.info('Verifying email with email verification key: ' + email_verification_key);
   db.query('SELECT * FROM users WHERE email_verification_key = ? AND email_verification_expires > ?', [email_verification_key, new Date()], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -738,7 +746,7 @@ app.get(API_PATH + '/user/email/verify/:email_verification_key', (req, res) => {
     const user = result[0];
     db.query('UPDATE users SET email_verified = TRUE, email_verification_key = NULL, email_verification_expires = NULL WHERE id = ?', [user.id], (err, result) => {
       if (err) {
-        console.error('Error updating email verification in database: ' + err);
+        logger.error('Error updating email verification in database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
@@ -765,7 +773,7 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
   hourAgo.setHours(hourAgo.getHours() - 1);
   db.query('SELECT COUNT(*) AS setupCount FROM trainer_setups WHERE user_id = ? AND created_at > ?', [req.session.userId, hourAgo], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -777,7 +785,7 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
 
     db.query('INSERT INTO trainer_setups (name, url, created_at, updated_at, user_id, setup_version, setup_class, setup_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [name, url, created_at, updated_at, req.session.userId, setup_version, setup_class, setup_level], (err, result) => {
       if (err) {
-        console.error('Error inserting trainer setup into database: ' + err);
+        logger.error('Error inserting trainer setup into database: ' + err);
         res.json({ status: 'error', message: 'Error creating trainer setup' });
         return;
       }
@@ -790,7 +798,7 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
 app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
     db.query('SELECT * FROM trainer_setups WHERE user_id = ?', [req.session.userId], (err, result) => {
         if (err) {
-            console.error('Error querying database: ' + err);
+            logger.error('Error querying database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
         }
@@ -803,7 +811,7 @@ app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
 app.get(API_PATH + '/trainer/setups', (req, res) => {
   db.query('SELECT trainer_setups.*, users.nickname, users.id AS user_id FROM trainer_setups JOIN users ON trainer_setups.user_id = users.id WHERE is_public = TRUE', (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -817,7 +825,7 @@ app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -838,7 +846,7 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   // Check if the user is the owner of the trainer setup
   db.query('SELECT user_id FROM trainer_setups WHERE id = ?', [id], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -858,14 +866,14 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
     
     db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
       if (err) {
-        console.error('Error querying database: ' + err);
+        logger.error('Error querying database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
       if (result.length === 0) {
         db.query('INSERT INTO trainer_setup_ratings (rating, trainer_setup_id, user_id, recommendation, review) VALUES (?, ?, ?, ?, ?)', [rating, id, req.session.userId, recommendation, review], (err, result) => {
           if (err) {
-            console.error('Error inserting rating into database: ' + err);
+            logger.error('Error inserting rating into database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
           }
@@ -875,7 +883,7 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
       } else {
         db.query('UPDATE trainer_setup_ratings SET rating = ?, recommendation = ?, review = ? WHERE trainer_setup_id = ? AND user_id = ?', [rating, recommendation, review, id, req.session.userId], (err, result) => {
           if (err) {
-            console.error('Error updating rating in database: ' + err);
+            logger.error('Error updating rating in database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
           }
@@ -893,7 +901,7 @@ app.delete(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   logger.info('Deleting rating of trainer setup: ' + id);
   db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -907,7 +915,7 @@ app.get(API_PATH + '/trainer/ratings/:id', (req, res) => {
   const id = req.params.id;
   db.query('SELECT trainer_setup_ratings.*, users.nickname FROM trainer_setup_ratings JOIN users ON trainer_setup_ratings.user_id = users.id WHERE trainer_setup_id = ?', [id], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -919,12 +927,12 @@ app.get(API_PATH + '/trainer/ratings/:id', (req, res) => {
 function recalculateRating(id) {
   db.query('SELECT AVG(rating) AS rating, SUM(recommendation) AS recommendations, COUNT(rating) AS ratings FROM trainer_setup_ratings WHERE trainer_setup_id = ?', [id], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       return;
     }
     db.query('UPDATE trainer_setups SET rating = ?, recommendations = ?, ratings = ? WHERE id = ?', [result[0].rating, result[0].recommendations, result[0].ratings, id], (err, result) => {
       if (err) {
-        console.error('Error updating rating in database: ' + err);
+        logger.error('Error updating rating in database: ' + err);
         return;
       }
     });
@@ -937,7 +945,7 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   logger.info('Deleting trainer setup: ' + id);
     db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -949,7 +957,7 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
     // Delete all ratings of the deleted setup
     db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ?', [id], (err, result) => {
       if (err) {
-        console.error('Error querying database: ' + err);
+        logger.error('Error querying database: ' + err);
         res.status(500).send('Internal Server Error');
         return;
       }
@@ -965,7 +973,7 @@ app.put(API_PATH + '/trainer/mysetups/:id/status', checkAuth, (req, res) => {
   logger.info('Changing public status of trainer setup: ' + id, is_public);
   db.query('UPDATE trainer_setups SET is_public = ? WHERE id = ? AND user_id = ?', [is_public, id, req.session.userId], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
@@ -984,7 +992,7 @@ app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
   logger.info('Changing name of trainer setup: ' + id, name);
   db.query('UPDATE trainer_setups SET name = ? WHERE id = ? AND user_id = ?', [name, id, req.session.userId], (err, result) => {
     if (err) {
-      console.error('Error querying database: ' + err);
+      logger.error('Error querying database: ' + err);
       return res.status(500).send('Internal Server Error');
     }
     if (result.affectedRows === 0) {
