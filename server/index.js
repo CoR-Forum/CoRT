@@ -426,12 +426,11 @@ app.post(API_PATH + '/register', (req, res) => {
     return;
   }
 
-    // Check nickname requirements
-    if (!checkNicknameRequirements(nickname)) {
-      res.json({ status: 'error', message: nicknameDoesNotMeetRequirements });
-      return;
-    }
-
+  // Check nickname requirements
+  if (!checkNicknameRequirements(nickname)) {
+    res.json({ status: 'error', message: nicknameDoesNotMeetRequirements });
+    return;
+  }
 
   // Check email requirements
   if (!checkEmailRequirements(email)) {
@@ -569,7 +568,7 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
         res.status(500).send('Internal Server Error');
         return;
       }
-      res.send('User activated. You can now login.');
+      res.send('User activated. You can now login <a href="/#login">here</a>.');
     });
   });
 });
@@ -619,11 +618,13 @@ app.post(API_PATH + '/password/reset', (req, res) => {
 app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
   const password_reset_key = req.params.password_reset_key;
   const { password } = req.body;
+
   // check password requirements
   if (!checkPasswordRequirements(password)) {
     res.json({ status: 'error', message: passwordDoesNotMeetRequirements });
     return;
   }
+
   logger.info('Resetting password with password reset key: ' + password_reset_key, password);
   db.query('SELECT * FROM users WHERE password_reset_key = ? AND password_reset_expires > ?', [password_reset_key, new Date()], (err, result) => {
     if (err) {
@@ -674,14 +675,15 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
     const updated_at = new Date();
     logger.info('Updating user: ' + email, nickname);
 
-    // Check if email, username and nickname are valid
-    if (!email.includes('@') || !email.includes('.') || email.length < 5 || email.length > 255) {
-      res.json({ status: 'error', message: 'Invalid email' });
+    // Check nickname requirements
+    if (!checkNicknameRequirements(nickname)) {
+      res.json({ status: 'error', message: nicknameDoesNotMeetRequirements });
       return;
     }
-    // nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces
-    if (!nickname.match(/^[a-zA-Z0-9_ ]{3,20}$/)) {
-      res.json({ status: 'error', message: 'Invalid nickname' });
+
+    // Check email requirements
+    if (!checkEmailRequirements(email)) {
+      res.json({ status: 'error', message: emailDoesNotMeetRequirements });
       return;
     }
     
