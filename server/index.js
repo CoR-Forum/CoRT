@@ -1,14 +1,6 @@
 // this nodejs server will serve a rest api for the frontend to consume
 // everything will be in one file for simplicity
 
-// Dependencies
-const express = require('express');
-const bodyParser = require('body-parser');
-const mysql = require('mysql');
-const bcrypt = require('bcrypt');
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
-
 // Winston logger
 const winston = require('winston');
 
@@ -30,8 +22,6 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-module.exports = logger;
-
 // Environment variables
 require('dotenv').config();
 
@@ -50,7 +40,9 @@ const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
-// Database
+// MySQL Database
+const mysql = require('mysql');
+
 const db = mysql.createConnection({
   host: DB_HOST,
   user: DB_USER,
@@ -64,7 +56,7 @@ db.connect((err) => {
         logger.error('Database connection failed: ' + err.stack);
         return;
     }
-    logger.info('Connected to database: ' + db.threadId);
+    logger.info('Connected to database ' + DB_NAME + ' on ' + DB_HOST + ':' + DB_PORT + ' (threadId ' + db.threadId + ')');
     });
 
 // check if database exists, if not create it
@@ -253,13 +245,10 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setup_ratings (
   logger.info('Table trainer_setup_ratings created or updated');
 });
 
-// EMAILS
+// E-Mails
 
 const nodemailer = require('nodemailer');
 
-// SMTP
-
-// create transporter
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
@@ -269,32 +258,18 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// function to send email to user
-// "to" is the user id, "subject" is the subject, "text" is the text version, "html" is the html version
-
 function sendEmail(to, subject, text, html) {
-  if (typeof to === 'number') {
-    db.query('SELECT email FROM users WHERE id = ?', [to], (err, result) => {
-      if (err) {
-        logger.error('Error querying database: ' + err);
-        return;
-      }
-      const mailOptions = {
-        from: SMTP_FROM,
-        to: result[0].email,
-        subject: subject,
-        text: text,
-        html: html,
-      };
-      transporter.sendMail(mailOptions, (err, info) => {
+    // if to is a user id, get the email address from the database, else use the email address
+    if (Number.isInteger(to)) {
+      db.query('SELECT email FROM users WHERE id = ?', [to], (err, result) => {
         if (err) {
-          logger.error('Error sending email: ' + err);
+          logger.error('Error querying database: ' + err);
           return;
         }
-        logger.info('Email sent: ' + info.response);
+        sendEmail(result[0].email, subject, text, html);
       });
-    });
-  } else {
+      return;
+    }
     const mailOptions = {
       from: SMTP_FROM,
       to: to,
@@ -308,9 +283,9 @@ function sendEmail(to, subject, text, html) {
         return;
       }
       logger.info('Email sent: ' + info.response);
-    });
-  }
-};
+    }
+  );
+}
 
 // E-Mail templates
 const emailTemplates = {
@@ -320,16 +295,23 @@ const emailTemplates = {
   }
 };
 
-// send test email on startup to user id 4
-//sendEmail(4, 'Test email', 'This is a test email', '<p>This is a test email</p>');
+// send test email on startup to check if SMTP settings are correct
+// sendEmail(1, 'Test email', 'This is a test email', '<p>This is a test email</p>');
 
 // App
+// Dependencies
+const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
+
+// Express
+const express = require('express');
 const app = express();
 app.use(bodyParser.json());
 
-// Import express-session
+// Session
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 
-// Configure express-session
 const sessionStore = new MySQLStore({
   host: DB_HOST,
   user: DB_USER,
@@ -391,15 +373,12 @@ const nicknameDoesNotMeetRequirements = 'Nickname must be between 3 and 20 chara
 
 // Function to check email requirements
 function checkEmailRequirements(email) {
-  // email must contain @ and . and be between 5 and 255 characters long
   return email.includes('@') && email.includes('.') && email.length > 5 && email.length < 255;
 }
 const emailDoesNotMeetRequirements = 'Invalid email address.';
 
 
 // USERS
-// register - register a new user with email, password, username, nickname.
-// encrypt password with bcrypt
 app.post(API_PATH + '/register', (req, res) => {
   const { email, password, username, nickname } = req.body;
   const registration_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -408,25 +387,18 @@ app.post(API_PATH + '/register', (req, res) => {
   const updated_at = new Date();
   logger.info('Registering user: ' + email, username, nickname, password);
   
-  // Check username requirements
   if (!checkUsernameRequirements(username)) {
     res.json({ status: 'error', message: usernameDoesNotMeetRequirements });
     return;
   }
-
-  // Check nickname requirements
   if (!checkNicknameRequirements(nickname)) {
     res.json({ status: 'error', message: nicknameDoesNotMeetRequirements });
     return;
   }
-
-  // Check email requirements
   if (!checkEmailRequirements(email)) {
     res.json({ status: 'error', message: emailDoesNotMeetRequirements });
     return;
   }
-  
-  // Check password requirements
   if (!checkPasswordRequirements(password)) {
     res.json({ status: 'error', message: passwordDoesNotMeetRequirements });
     return;
@@ -477,7 +449,6 @@ app.post(API_PATH + '/login', (req, res) => {
   const { login, password } = req.body;
   logger.info('Logging in user: ' + login, password);
 
-  // check if login is email or username
   const isEmail = login.includes('@');
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
   db.query(query, [login], (err, result) => {
@@ -490,7 +461,6 @@ app.post(API_PATH + '/login', (req, res) => {
       res.json({ status: 'error', message: 'Invalid login' });
       return;
     }
-    // check if user is active
     if (!result[0].active) {
       res.json({ status: 'error', message: 'User not activated' });
       return;
@@ -509,7 +479,6 @@ app.post(API_PATH + '/login', (req, res) => {
       if (same) {
         req.session.userId = user.id;
         req.session.username = user.username;
-        // update last_login and last_ip
         const last_login = new Date();
         const last_ip = req.connection.remoteAddress;
         db.query('UPDATE users SET last_login = ?, last_ip = ? WHERE id = ?', [last_login, last_ip, user.id], (err, result) => {
@@ -521,12 +490,11 @@ app.post(API_PATH + '/login', (req, res) => {
           logger.info('User logged in: ' + user.email, user.username, user.nickname, user.role);
           res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
 
-          // send login notification email
           var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
           var html = emailTemplates.loginNotification(user.nickname, user.username, loginTime, loginIP) + emailTemplates.footer;
           sendEmail(user.id, 'CoRT Login Notification', text, html);
         });
-        return; // Add return statement here
+        return; 
       }
       res.send('User logged in');
     });
@@ -541,15 +509,14 @@ app.post(API_PATH + '/logout', (req, res) => {
 
 // activate - activate user account with registration key
 app.get(API_PATH + '/activate/:registration_key', (req, res) => {
-  const registration_key = req.params.registration_key;
-  logger.info('Activating user with registration key: ' + registration_key);
-  db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [registration_key], (err, result) => {
+  logger.info('Activating user with registration key: ' + req.params.registration_key);
+  db.query('UPDATE users SET active = TRUE WHERE registration_key = ?', [req.params.registration_key], (err) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
-    db.query('UPDATE users SET registration_key = NULL WHERE registration_key = ?', [registration_key], (err, result) => {
+    db.query('UPDATE users SET registration_key = NULL WHERE registration_key = ?', [req.params.registration_key], (err) => {
       if (err) {
         logger.error('Error querying database: ' + err);
         res.status(500).send('Internal Server Error');
@@ -560,8 +527,7 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
   });
 });
 
-// initiate password reset - send email with password reset link
-// user enters email or username, check if user exists, generate password reset key, send email with password reset link
+// password reset - initiate password reset with email or username
 app.post(API_PATH + '/password/reset', (req, res) => {
   const login = req.body.login;
   logger.info('Initiating password reset for: ' + login);
@@ -601,7 +567,6 @@ app.post(API_PATH + '/password/reset', (req, res) => {
 });
 
 // reset password - reset password with password reset key
-// user enters new password, check if password reset key is valid and not expired, update password
 app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
   const password_reset_key = req.params.password_reset_key;
   const { password } = req.body;
@@ -642,7 +607,6 @@ app.post(API_PATH + '/password/reset/:password_reset_key', (req, res) => {
   });
 });
 
-
 // retrieve own user
 app.get(API_PATH + '/user', checkAuth, (req, res) => {
     db.query('SELECT id, email, username, nickname, role FROM users WHERE id = ?', [req.session.userId], (err, result) => {
@@ -656,7 +620,6 @@ app.get(API_PATH + '/user', checkAuth, (req, res) => {
 });
 
 // update own user
-// if the e-mail is changed, send a verification e-mail
 app.put(API_PATH + '/user', checkAuth, (req, res) => {
     const { email, nickname } = req.body;
     const updated_at = new Date();
@@ -826,8 +789,7 @@ app.get(API_PATH + '/trainer/setups', (req, res) => {
   });
 });
 
-// /trainer/myratings/:id will return the rating and the recommendations of the trainer setup
-// if the user has already rated the setup, return the rating, else return 0.00
+// retrieve the rating and recommendations of the trainer setup for the logged-in user
 app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   db.query('SELECT * FROM trainer_setup_ratings WHERE trainer_setup_id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
@@ -836,11 +798,8 @@ app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {
       res.status(500).send('Internal Server Error');
       return;
     }
-    if (result.length === 0) {
-      res.json({ rating: 0.00, recommendation: 0, review: ''});
-      return;
-    }
-    res.json(result[0]);
+    const ratingData = result.length === 0 ? { rating: 0.00, recommendation: 0, review: '' } : result[0];
+    res.json(ratingData);
   });
 });
 
@@ -850,7 +809,6 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
   const { rating, recommendation, review } = req.body;
   logger.info('Rating trainer setup: ' + id, rating, recommendation, review);
   
-  // Check if the user is the owner of the trainer setup
   db.query('SELECT user_id FROM trainer_setups WHERE id = ?', [id], (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
@@ -859,13 +817,11 @@ app.post(API_PATH + '/trainer/rate/:id', checkAuth, (req, res) => {
     }
     const ownerId = result[0].user_id;
     
-    // Check if the user is the owner of the trainer setup
     if (req.session.userId === ownerId) {
       res.json({ status: 'error', message: 'You cannot rate your own trainer setup' });
       return;
     }
     
-    // Check if the rating is between 1 and 5
     if (rating < 1 || rating > 5) {
       res.json({ status: 'error', message: 'Rating must be between 1 and 5' });
       return;
@@ -950,7 +906,7 @@ function recalculateRating(id) {
 app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
   const id = req.params.id;
   logger.info('Deleting trainer setup: ' + id);
-    db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
+  db.query('DELETE FROM trainer_setups WHERE id = ? AND user_id = ?', [id, req.session.userId], (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
@@ -960,8 +916,6 @@ app.delete(API_PATH + '/trainer/mysetups/:id', checkAuth, (req, res) => {
       res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
       return;
     }
-    
-    // Delete all ratings of the deleted setup
     db.query('DELETE FROM trainer_setup_ratings WHERE trainer_setup_id = ?', [id], (err, result) => {
       if (err) {
         logger.error('Error querying database: ' + err);
@@ -981,12 +935,10 @@ app.put(API_PATH + '/trainer/mysetups/:id/status', checkAuth, (req, res) => {
   db.query('UPDATE trainer_setups SET is_public = ? WHERE id = ? AND user_id = ?', [is_public, id, req.session.userId], (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
+      return res.status(500).send('Internal Server Error');
     }
     if (result.affectedRows === 0) {
-      res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
-      return;
+      return res.json({ status: 'error', message: 'Trainer setup not found or unauthorized' });
     }
     res.json({ status: 'success', message: 'Trainer setup public status changed' });
   });
