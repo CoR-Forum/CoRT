@@ -332,6 +332,14 @@ function sendEmail(to, subject, text, html) {
   }
 };
 
+// E-Mail templates
+const emailTemplates = {
+  footer: '<p>Best regards,<br>CoRT Team</p>',
+  loginNotification: (nickname, username, loginTime, loginIP) => {
+    return `<p>Hello ${nickname} (${username}),</p><p>You have successfully logged in to your CoRT account.</p><p>Date: ${loginTime}<br>IP: ${loginIP}.</p>`;
+  }
+};
+
 // send test email on startup to user id 4
 //sendEmail(4, 'Test email', 'This is a test email', '<p>This is a test email</p>');
 
@@ -534,10 +542,9 @@ app.post(API_PATH + '/login', (req, res) => {
           res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
 
           // send login notification email
-          const subject = 'Login Notification';
-          const text = `Hello ${user.username},\n\nYou have successfully logged in to your account on ${last_login}.`;
-          const html = `<p>Hello ${user.username},</p><p>You have successfully logged in to your account on ${last_login}.</p>`;
-          sendEmail(user.id, subject, text, html);
+          var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+          var html = emailTemplates.loginNotification(user.nickname, user.username, loginTime, loginIP) + emailTemplates.footer;
+          sendEmail(user.id, 'CoRT Login Notification', text, html);
         });
         return; // Add return statement here
       }
