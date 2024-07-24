@@ -243,6 +243,11 @@ $(document).ready(function() {
 		$("#login-form").css("display", "block");
 	});
 
+	// show login form if url contains #login
+	if (window.location.hash == "#login") {
+		$("#login-form").css("display", "block");
+	}
+
 	// event listener for the close button in the login form
 	$("#closeLoginModal").on("click", function() {
 		$("#login-form").css("display", "none");
