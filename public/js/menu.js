@@ -398,8 +398,6 @@ function checkLogin() {
 	.catch(error => {
 		console.error("User login check failed: " + error);
 	});
-		
-
 }
 
 // function to handle the login form submission
@@ -419,8 +417,9 @@ function login() {
 	.then(data => {
 		if (data.status == "success") {
 			localStorage.setItem("user", username);
-			// alert("Login successful");
-			window.location.reload();
+			// reload the page to show the user menu and remove "#login" from the url
+			window.location.href = window.location.href.split("#")[0];
+
 		} else {
 			alert("Login failed: " + data.message);
 		}
