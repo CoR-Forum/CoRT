@@ -84,14 +84,14 @@ let __menu_content = `
 		</ul>
 		<!-- login form -->
 		<div id="login-form" class="modal">
-			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="card" style="max-width:70%;margin: 0 auto">
 			<div class="modal-content">
 				<h2>${_("Login")}</h2>
 				<form id="login-form-content">
 					<label for="username">${_("Username or e-mail address")}</label><br>
-					<input style="max-width:60%" type="text" id="username" name="username" required><br>
+					<input style="max-width:80%" type="text" id="username" name="username" required><br>
 					<label for="password">${_("Password")}</label><br>
-					<input style="max-width:60%" type="password" id="password" name="password" required><br>
+					<input style="max-width:80%" type="password" id="password" name="password" required><br>
 				</form>
 				<button id="loginButton">${_("Login")}</button><br>
 				<a id="closeLoginModal" class="close">&times; back</a><br>
@@ -127,24 +127,24 @@ let __menu_content = `
 		<!-- end login form -->
 		<!-- registration form -->
 		<div id="registration-form" class="modal">
-			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="card" style="max-width:70%;margin: 0 auto">
 			<div class="modal-content">
 				<h2>${_("Registration")}</h2>
 				<form id="registration-form-content">
 					<label for="username">${_("Username (only for login)")}</label><br>
-					<input style="max-width:60%" type="text" id="regUsername" name="username" required><br>
+					<input style="max-width:80%" type="text" id="regUsername" name="username" required><br>
 					<label for="nickname">${_("Nickname (visible to other users)")}</label><br>
-					<input style="max-width:60%" type="text" id="regNickname" name="nickname" required><br>
+					<input style="max-width:80%" type="text" id="regNickname" name="nickname" required><br>
 					<label for="email">${_("Email")}</label><br>
-					<input style="max-width:60%" type="text" id="regEmail" name="email" required><br>
+					<input style="max-width:80%" type="text" id="regEmail" name="email" required><br>
 					<label for="password">${_("Password")}</label><br>
-					<input style="max-width:60%" type="password" id="regPassword" name="password" required><br>
+					<input style="max-width:80%" type="password" id="regPassword" name="password" required><br>
 					<label for="password2">${_("Repeat password")}</label><br>
-					<input style="max-width:60%" type="password" id="regPassword2" name="password2" required><br>
+					<input style="max-width:80%" type="password" id="regPassword2" name="password2" required><br>
 					<!-- CAPTCHA question -->
 					<div id="captchaQuestion"></div>
 					<input type="hidden" id="correctAnswer">
-					<input style="max-width:60%" type="text" id="captchaAnswer" name="captchaAnswer" required><br>
+					<input style="max-width:80%" type="text" id="captchaAnswer" name="captchaAnswer" required><br>
 				</form>
 									<button id="registrationButton">${_("Register")}</button><br>
 
@@ -155,12 +155,12 @@ let __menu_content = `
 		<!-- end registration form -->
 		<!-- password reset init form -->
 		<div id="password-reset-init-form" class="modal">
-			<div class="card" style="max-width:50%;margin: 0 auto">
+			<div class="card" style="max-width:70%;margin: 0 auto">
 			<div class="modal-content">
 				<h2>${_("Password reset")}</h2>
 				<form id="password-reset-init-form-content">
 					<label for="email">${_("Email or Username")}</label><br>
-					<input style="max-width:60%" type="text" id="resetEmail" name="email" required><br>
+					<input style="max-width:80%" type="text" id="resetEmail" name="email" required><br>
 				</form>
 				<button id="passwordResetInitButton">${_("Send password reset link")}</button><br>
 				<a id="closePasswordResetInitModal" class="close">&times; back</a>
