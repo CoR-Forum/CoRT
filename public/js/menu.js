@@ -420,8 +420,10 @@ function login() {
 			// reload the page to show the user menu and remove "#login" from the url
 			window.location.href = window.location.href.split("#")[0];
 
-		} else {
+		} else if (data.status == "error") {
 			alert("Login failed: " + data.message);
+		} else {
+			alert("Login failed: unknown error");
 		}
 	})
 	.catch(error => {
