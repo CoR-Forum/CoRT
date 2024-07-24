@@ -9,7 +9,6 @@
     "mysql": "^2.18.1",
     "nodemailer": "^6.9.14",
     "sequelize": "^6.37.3",
-    "socket.io": "^4.7.5",
     "winston": "^3.13.1"
   }
 }

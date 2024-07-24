@@ -1,31 +1,11 @@
 // this nodejs server will serve a rest api for the frontend to consume
 // everything will be in one file for simplicity
-// users will be able to register, login and create markets and items in the markets
-// to sell or buy their ingame items from Regnum Online
-//
-// Core - USERS
-// register, login, logout, get user, update own user
-// fields: id, email, password, username, nickname, role, created_at, updated_at
-//
-// Core - MARKET
-// get markets, get market by id, create market, update market, delete market
-// fields: id, name, description, created_at, updated_at, realm
-//
-// Core - PRIVATE MARKET
-// get private markets, get private market by id, create own private market, update private market, delete own private market
-// fields: id, name, description, created_at, updated_at, realm, user_id
-//
-// Core - MARKET ITEM
-// get market items, get market item by id, create market item, update market item, delete market item
-// fields: id, name, description, images, price, currency, created_at, updated_at, market_id, user_id, type (sell, buy), status (active, inactive, sold), sold_at, buyer_id, sellType (auction, fixed)
-//
-// 
+
 // Dependencies
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
-const socket = require('socket.io');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 
