@@ -380,13 +380,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// Function to check username requirements
+function checkUsernameRequirements(username) {
+  // username must be between 3 and 20 characters and only contain letters, numbers, underscores and hyphens
+  return username.match(/^[a-zA-Z0-9_-]{3,20}$/);
+}
+const usernameDoesNotMeetRequirements = 'Username must be between 3 and 20 characters and only contain letters, numbers, underscores and hyphens.';
+
 // Function to check password requirements
 function checkPasswordRequirements(password) {
   // password must be at least 8 characters long and contain at least one letter and one number
   return password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/);
 }
-
 const passwordDoesNotMeetRequirements = 'Password must be 8 characters long and contain at least one letter and one number.';
+
+// Function to check nickname requirements
+function checkNicknameRequirements(nickname) {
+  // nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces
+  return nickname.match(/^[a-zA-Z0-9_ ]{3,20}$/);
+}
+const nicknameDoesNotMeetRequirements = 'Nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces.';
+
+// Function to check email requirements
+function checkEmailRequirements(email) {
+  // email must contain @ and . and be between 5 and 255 characters long
+  return email.includes('@') && email.includes('.') && email.length > 5 && email.length < 255;
+}
+const emailDoesNotMeetRequirements = 'Invalid email address.';
+
 
 // USERS
 // register - register a new user with email, password, username, nickname.
@@ -399,28 +420,25 @@ app.post(API_PATH + '/register', (req, res) => {
   const updated_at = new Date();
   logger.info('Registering user: ' + email, username, nickname, password);
   
-  // Check if fields are empty
-  if (!email || !password || !username || !nickname) {
-    res.json({ status: 'error', message: 'Please enter all fields' });
+  // Check username requirements
+  if (!checkUsernameRequirements(username)) {
+    res.json({ status: 'error', message: usernameDoesNotMeetRequirements });
     return;
   }
 
-  // Check if email, username and nickname are valid
-  if (!email.includes('@') || !email.includes('.') || email.length < 5 || email.length > 255) {
-    res.json({ status: 'error', message: 'Invalid email' });
-    return;
-  }
-  // username must be between 3 and 20 characters and only contain letters, numbers, and underscores
-  if (!username.match(/^[a-zA-Z0-9_]{3,20}$/)) {
-    res.json({ status: 'error', message: 'Invalid username' });
-    return;
-  }
-  // nickname must be between 3 and 20 characters and only contain letters, numbers, underscores and spaces
-  if (!nickname.match(/^[a-zA-Z0-9_ ]{3,20}$/)) {
-    res.json({ status: 'error', message: 'Invalid nickname' });
-    return;
-  }
+    // Check nickname requirements
+    if (!checkNicknameRequirements(nickname)) {
+      res.json({ status: 'error', message: nicknameDoesNotMeetRequirements });
+      return;
+    }
 
+
+  // Check email requirements
+  if (!checkEmailRequirements(email)) {
+    res.json({ status: 'error', message: emailDoesNotMeetRequirements });
+    return;
+  }
+  
   // Check password requirements
   if (!checkPasswordRequirements(password)) {
     res.json({ status: 'error', message: passwordDoesNotMeetRequirements });
