@@ -23,22 +23,28 @@ no functionality tho.
 
 ### Example .env file (required)
 
+You can copy the ``.env.example`` file to ``.env``
+
 ```
+NODE_ENV=development
+
 API_PATH=/api/v1
-POST=8080
+PORT=8080
 HOST=http://localhost
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=market
-DB_USER=market
-DB_PASS=market
+DB_NAME=cort
+DB_USER=cort
+DB_PASS=cort
+
+SMTP_HOST=mail.domain.com
+SMTP_PORT=587
+SMTP_USER=system@domain.com
+SMTP_PASS=password
+SMTP_FROM="CoRT <system@domain.com>"
+
+SESSION_SECRET=supersecretrandomstring
 ```
-
-**Defaults**
-
-API_PATH: /api/v1
-PORT: 8080
-HOST: http://localhost
 
 ## Known issues
 
