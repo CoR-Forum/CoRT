@@ -200,7 +200,9 @@
 							const filterTextures = () => {
 								const searchText = searchInput.value.toLowerCase();
 								const filteredTextures = data.textures.filter(texture => {
-									return texture.filename.toLowerCase().includes(searchText);
+									const filename = texture.filename.toLowerCase();
+									const filenameWithoutExtension = filename.split('.')[0];
+									return filenameWithoutExtension.includes(searchText);
 								});
 
 								renderTextures(filteredTextures);
@@ -210,8 +212,11 @@
 							const filterSounds = () => {
 								const searchText = searchInput.value.toLowerCase();
 								const filteredSounds = data.sounds.filter(sound => {
-									return sound.filename.toLowerCase().includes(searchText);
+									const filename = sound.filename.toLowerCase();
+									const filenameWithoutExtension = filename.split('.')[0];
+									return filenameWithoutExtension.includes(searchText);
 								});
+								
 								renderSounds(filteredSounds);
 							};
 
