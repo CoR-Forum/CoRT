@@ -33,6 +33,11 @@
 				cursor: url('../data/cursor/plus.png'), default;
 			}
 
+			.texture p {
+				margin: 0.5rem 0;
+				text-align: center;
+			}
+
 			/* Add CSS styles for enlarged images */
 			.texture img.enlarged {
 				max-width: none;
@@ -41,6 +46,22 @@
 				height: auto;
 				cursor: url('../data/cursor/minus.png'), default;
 
+			}
+
+			.sound {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.sound img {
+				width: 50px;
+				height: auto;
+				align-self: center;
+			}
+
+			.sound p {
+				margin: 0.5rem 0;
+				text-align: center;
 			}
 
 			#search-input {
@@ -131,6 +152,7 @@
 									const textureElement = document.createElement('div');
 									textureElement.classList.add('texture');
 									const textureName = texture.filename.split('-')[1].split('.')[0].trim();
+									const textureId = texture.filename.split('-')[0].trim();
 									textureElement.innerHTML = `
 										<img src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/${texture.filename}" alt="${textureName}" loading="lazy">
 										<p>${textureName}</p>
@@ -138,6 +160,29 @@
 									texturesContainer.appendChild(textureElement);
 								});
 							};
+
+							// Function to render sounds based on data
+							const renderSounds = (sounds) => {
+								sounds.forEach(sound => {
+									const soundElement = document.createElement('div');
+									soundElement.classList.add('sound');
+									const soundName = sound.filename.split('-')[1].split('.')[0].trim();
+									const soundId = sound.filename.split('-')[0].trim();
+									soundElement.innerHTML = `
+										<img src="/data/texturesparadise/ogg.png" width="50px" loading="lazy">
+										<p>${soundName}</p>
+										<!-- button to play sound -->
+										<p style="align-items:center">
+										<!-- button to create hidden audio element and play sound -->
+										<button onclick="new Audio('https://cor-forum.de/regnum/datengrab/res/SOUND/${sound.filename}').play()">Play</button>
+										<button onclick="window.open('https://cor-forum.de/regnum/datengrab/res/SOUND/${sound.filename}')">Download</button>
+										</p>
+									`;
+									texturesContainer.appendChild(soundElement);
+								});
+							};
+
+							
 
 							// Function to filter textures based on search input
 							const filterTextures = () => {
@@ -149,19 +194,33 @@
 								renderTextures(filteredTextures);
 							};
 
-							// Initial rendering of all textures
+							// Function to filter sounds based on search input
+							const filterSounds = () => {
+								const searchText = searchInput.value.toLowerCase();
+								const filteredSounds = data.sounds.filter(sound => {
+									return sound.filename.toLowerCase().includes(searchText);
+								});
+
+								renderSounds(filteredSounds);
+							};
+
+							// Initial rendering of all textures and sounds
 							renderTextures(data.textures);
+							renderSounds(data.sounds);
 
 							// Add event listener to search input with sleep to prevent too many requests
 							let searchTimeout;
 							searchInput.addEventListener('input', () => {
 								clearTimeout(searchTimeout);
-								searchTimeout = setTimeout(filterTextures, 500);
+								searchTimeout = setTimeout(() => {
+									filterTextures();
+									filterSounds();
+								}, 500);
 							});
 
-							// set the search input placeholder to the number of textures
+							// set the search input placeholder to the number of textures and sounds
 							console.log(texturesCount);
-							searchInput.placeholder = `Search ${texturesCount} textures...`;
+							searchInput.placeholder = `Search ${texturesCount} textures and sounds...`;
 						});
 				});
 
