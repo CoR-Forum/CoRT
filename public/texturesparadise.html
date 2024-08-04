@@ -110,18 +110,26 @@
 			<h1 id="title">Textures Paradise</h1>
 			<div id="titleinfo">By default, all images are thumbnails at 100x100px.<br>
 				Click on an image to enlarge and load it in full quality.</div>
-			<p class="center">Last data update: 03.08.2024</p>
+			<p class="center">Last data update: 04.08.2024</p>
+			<div class="card center">
+			<div id="filter">
 			<input type="text" id="search-input" placeholder="Search textures...">
+			<!-- dropdown to select between all, textures, and sounds -->
+			<select id="search-type">
+				<option value="all">Show All</option>
+				<option value="textures">Textures</option>
+				<option value="sounds">Sounds</option>
+			</select>
+			</div>
 			<div id="search-buttons">
 				<button class="search-button" onclick="fillSearchInput('gui')">gui</button>
 				<button class="search-button" onclick="fillSearchInput('map')">map</button>
-
 				<button class="search-button" onclick="fillSearchInput('icon power')">icon power</button>
 				<button class="search-button" onclick="fillSearchInput('icon item')">icon item</button>
 				<button class="search-button" onclick="fillSearchInput('icon monster')">icon monster</button>
 				<button class="search-button" onclick="fillSearchInput('')">reset search</button>
-
 			</div>
+		</div>
 			<div id="loading-message">Loading...</div>
 			<div id="textures-container" class="card"></div>
 
@@ -182,7 +190,7 @@
 								});
 							};
 
-							
+
 
 							// Function to filter textures based on search input
 							const filterTextures = () => {
@@ -200,7 +208,6 @@
 								const filteredSounds = data.sounds.filter(sound => {
 									return sound.filename.toLowerCase().includes(searchText);
 								});
-
 								renderSounds(filteredSounds);
 							};
 
@@ -213,9 +220,35 @@
 							searchInput.addEventListener('input', () => {
 								clearTimeout(searchTimeout);
 								searchTimeout = setTimeout(() => {
-									filterTextures();
-									filterSounds();
+									const searchType = document.getElementById('search-type').value;
+									if (searchType === 'textures') {
+										texturesContainer.innerHTML = '';
+										filterTextures();
+									} else if (searchType === 'sounds') {
+										texturesContainer.innerHTML = '';
+										filterSounds();
+									} else {
+										texturesContainer.innerHTML = '';
+										filterTextures();
+										filterSounds();
+									}
 								}, 500);
+							});
+
+							// Add event listener to search type dropdown
+							document.getElementById('search-type').addEventListener('change', () => {
+								const searchType = document.getElementById('search-type').value;
+								if (searchType === 'textures') {
+									texturesContainer.innerHTML = '';
+									renderTextures(data.textures);
+								} else if (searchType === 'sounds') {
+									texturesContainer.innerHTML = '';
+									renderSounds(data.sounds);
+								} else {
+									texturesContainer.innerHTML = '';
+									renderTextures(data.textures);
+									renderSounds(data.sounds);
+								}
 							});
 
 							// set the search input placeholder to the number of textures and sounds
