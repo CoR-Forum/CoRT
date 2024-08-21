@@ -21,6 +21,10 @@ skipped.
 The marketplace server is required for the Market to run, right now there is
 no functionality tho.
 
+## Textures Paradise
+
+Please refer to [regnum-online-resources-crawler](https://github.com/CoR-Forum/regnum-online-resources-crawler/).
+
 ### Example .env file (required)
 
 You can copy the ``.env.example`` file to ``.env``
