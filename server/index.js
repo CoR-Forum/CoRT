@@ -79,6 +79,7 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
   active BOOLEAN DEFAULT FALSE,
   last_login TIMESTAMP,
   last_ip VARCHAR(255),
+  last_gdpr_export TIMESTAMP,
   password_reset_key VARCHAR(255),
   password_reset_expires TIMESTAMP,
   password_reset_ip VARCHAR(255)
@@ -705,10 +706,16 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
 
 // GDPR export data - export user data in JSON format and send it via email
 app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
-  db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
+  const oneMinuteAgo = new Date();
+  oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+  db.query('SELECT * FROM users WHERE id = ? AND last_gdpr_export < ?', [req.session.userId, oneMinuteAgo], (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ status: 'error', message: 'You can create an export once a minute.' });
       return;
     }
     const user = result[0];
@@ -716,7 +723,14 @@ app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
     const text = 'Here is your GDPR compliant data export:' + JSON.stringify(user, null, 2);
     const html = `<p>Here is your GDPR compliant data export:</p><pre>${JSON.stringify(user, null, 2)}</pre>`;
     sendEmail(user.id, subject, text, html);
-    res.json({ status: 'success', message: 'Your data has been exported. Please check your e-mails.' });
+    const updated_at = new Date();
+    db.query('UPDATE users SET last_gdpr_export = ? WHERE id = ?', [updated_at, user.id], (err, result) => {
+      if (err) {
+        logger.error('Error updating last_gdpr_export: ' + err);
+        return;
+      }
+      res.json({ status: 'success', message: 'Your data has been exported. Please check your e-mails.' });
+    });
   });
 });
 
