@@ -491,7 +491,7 @@ app.post(API_PATH + '/login', (req, res) => {
           res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
 
           var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-          var html = emailTemplates.loginNotification(user.nickname, user.username, loginTime, loginIP) + emailTemplates.footer;
+          var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
           sendEmail(user.id, 'CoRT Login Notification', text, html);
         });
         return; 
