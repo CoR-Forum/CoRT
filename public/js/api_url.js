@@ -5,7 +5,7 @@
 // the pull!
 
 // The root where all API files can be found
-export const __api__base = "https://hail.thebus.top/CoRT";
+export const __api__base = "https://cort.cor-forum.de";
 
 // The API url used by login and marketplace
 // check if the host is localhost, use http://localhost:8080/api/v1, else use https://api.cort.cor-forum.de/api/v1
