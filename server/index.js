@@ -458,10 +458,12 @@ app.post(API_PATH + '/login', (req, res) => {
       return;
     }
     if (result.length === 0) {
+      logger.info('Invalid login: ' + login);
       res.json({ status: 'error', message: 'Invalid login' });
       return;
     }
     if (!result[0].active) {
+      logger.info('User not activated: ' + login);
       res.json({ status: 'error', message: 'User not activated' });
       return;
     }
@@ -473,7 +475,8 @@ app.post(API_PATH + '/login', (req, res) => {
         return;
       }
       if (!same) {
-        res.status(401).send('Invalid login');
+        logger.info('Invalid password: ' + login);
+        res.json({ status: 'error', message: 'Invalid password' });
         return;
       }
       if (same) {
@@ -542,6 +545,7 @@ app.post(API_PATH + '/password/reset', (req, res) => {
       return;
     }
     if (result.length === 0) {
+      logger.info('Invalid login: ' + login);
       res.json({ status: 'error', message: 'Invalid login' });
       return;
     }
