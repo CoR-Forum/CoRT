@@ -332,6 +332,7 @@ app.use(
   })
 );
 
+
 // Middleware to check if user is logged in
 function checkAuth(req, res, next) {
   if (req.session.userId) {
@@ -348,7 +349,7 @@ function checkAuth(req, res, next) {
 // CORS
 // Add headers to allow cross-origin requests
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080', 'https://cort.cor-forum.de');
   res.setHeader('Access-Control-Allow-Headers', 'Content-type, Authorization');
   next();
 });
