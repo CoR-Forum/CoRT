@@ -29,8 +29,8 @@ from bs4 import BeautifulSoup
 # File where to dump the status
 outfile = "../public/data/warstatus/warstatus.json"
 stats_db_file = "stats/events.sqlite"
-stats_outfile = "stats/statistics.json"
-stats_outfile_events = "stats/allevents.json"
+stats_outfile = "../public/data/warstatus/stats/statistics.json"
+stats_outfile_events = "../public/data/warstatus/stats/allevents.json"
 base_url = "https://www.championsofregnum.com/"
 # Use True to allow unconditional successful runtime for debugging
 # It propagates to stats.generate as well

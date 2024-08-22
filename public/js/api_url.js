@@ -7,6 +7,9 @@
 // The root where all API files can be found
 export const __api__base = "https://hail.thebus.top/CoRT";
 
+// New API url for cor-forum CoRT
+export const __api__cort = "https://api.cort.cor-forum.de/api/v1";
+
 // The API url used by login and marketplace
 // check if the host is localhost, use http://localhost:8080/api/v1, else use https://api.cort.cor-forum.de/api/v1
 export const __api__market = window.location.hostname === "localhost" ? "http://localhost:8080/api/v1" : "https://cort.cor-forum.de/api/v1";
@@ -20,7 +23,7 @@ export const __api__frontsite_dir = "/";
 export const __api__urls = {
 	"submit_trainer": `${__api__base}/collect/submit.php`,
 	"trainer_data": `${__api__base}/collect/data.txt`,
-	"events": `${__api__base}/warstatus/stats/allevents.json`,
-	"stats": `${__api__base}/warstatus/stats/statistics.json`,
-	"wstatus": `https://cort.cor-forum.de/data/warstatus/warstatus.json`
+	"events": `${__api__cort}/data/warstatus/stats/allevents.json`,
+	"stats": `${__api__cort}/data/warstatus/stats/statistics.json`,
+	"wstatus": `${__api__cort}/data/warstatus/warstatus.json`
 };
