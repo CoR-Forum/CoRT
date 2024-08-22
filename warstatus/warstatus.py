@@ -27,7 +27,7 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 # File where to dump the status
-outfile = "../data/warstatus/warstatus.json"
+outfile = "../public/data/warstatus/warstatus.json"
 stats_db_file = "stats/events.sqlite"
 stats_outfile = "stats/statistics.json"
 stats_outfile_events = "stats/allevents.json"
