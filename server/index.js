@@ -993,7 +993,7 @@ app.put(API_PATH + '/trainer/mysetups/:id/name', checkAuth, (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup
   function runWarstatus() {
-    exec('python3 warstatus/warstatus.py', (err, stdout, stderr) => {
+    exec('cd warstatus && python3 warstatus.py', (err, stdout, stderr) => {
       if (err) {
         logger.error('Error running warstatus.py:', err);
         return;
