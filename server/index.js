@@ -706,18 +706,19 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
 
 // GDPR export data - export user data in JSON format and send it via email
 app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
-  const oneMinuteAgo = new Date();
-  oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
-  db.query('SELECT * FROM users WHERE id = ? AND last_gdpr_export < ?', [req.session.userId, oneMinuteAgo], (err, result) => {
+  db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       res.status(500).send('Internal Server Error');
       return;
     }
-    if (result.length === 0) {
-      res.json({ status: 'error', message: 'You can create an export once a minute.' });
+
+    // check if user has requested data export in the last 60 seconds
+    if (result[0].last_gdpr_export && new Date(result[0].last_gdpr_export).getTime() > new Date().getTime() - 60000) {
+      res.json({ status: 'error', message: 'You have already requested a data export. Please wait a minute before requesting another one.' });
       return;
     }
+
     const user = result[0];
     const subject = 'Your CoRT GDPR Data Export';
     const text = 'Here is your GDPR compliant data export:' + JSON.stringify(user, null, 2);
