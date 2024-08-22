@@ -23,7 +23,7 @@ export const __api__frontsite_dir = "/";
 export const __api__urls = {
 	"submit_trainer": `${__api__base}/collect/submit.php`,
 	"trainer_data": `${__api__base}/collect/data.txt`,
-	"events": `${__api__cort}/data/warstatus/stats/allevents.json`,
-	"stats": `${__api__cort}/data/warstatus/stats/statistics.json`,
-	"wstatus": `${__api__cort}/data/warstatus/warstatus.json`
+	"events": `${__api__base}/warstatus/stats/allevents.json`,
+	"stats": `${__api__base}/warstatus/stats/statistics.json`,
+	"wstatus": `${__api__base}/warstatus/warstatus.json`
 };
