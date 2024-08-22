@@ -258,33 +258,33 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function sendEmail(to, subject, text, html) {
-    // if to is a user id, get the email address from the database, else use the email address
-    if (Number.isInteger(to)) {
-      db.query('SELECT email FROM users WHERE id = ?', [to], (err, result) => {
-        if (err) {
-          logger.error('Error querying database: ' + err);
-          return;
-        }
-        sendEmail(result[0].email, subject, text, html);
-      });
+function sendEmail(to, subject, text, html, attachments) {
+  // if to is a user id, get the email address from the database, else use the email address
+  if (Number.isInteger(to)) {
+    db.query('SELECT email FROM users WHERE id = ?', [to], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
       return;
     }
-    const mailOptions = {
-      from: SMTP_FROM,
-      to: to,
-      subject: subject,
-      text: text,
-      html: html,
-    };
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        logger.error('Error sending email: ' + err);
-        return;
-      }
-      logger.info('Email sent: ' + info.response);
+    sendEmail(result[0].email, subject, text, html, attachments);
+    });
+    return;
+  }
+  const mailOptions = {
+    from: SMTP_FROM,
+    to: to,
+    subject: subject,
+    text: text,
+    html: html,
+    attachments: attachments
+  };
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+    logger.error('Error sending email: ' + err);
+    return;
     }
-  );
+    logger.info('Email sent: ' + info.response);
+  });
 }
 
 // E-Mail templates
@@ -311,6 +311,7 @@ app.use(bodyParser.json());
 // Session
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
+const fs = require('fs');
 
 const sessionStore = new MySQLStore({
   host: DB_HOST,
@@ -701,6 +702,25 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
         }
     });
 });
+
+// GDPR export data - export user data in JSON format and send it via email
+app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
+  db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    const user = result[0];
+    const subject = 'Your CoRT GDPR Data Export';
+    const text = 'Here is your GDPR compliant data export:' + JSON.stringify(user, null, 2);
+    const html = `<p>Here is your GDPR compliant data export:</p><pre>${JSON.stringify(user, null, 2)}</pre>`;
+    sendEmail(user.id, subject, text, html);
+    res.json({ status: 'success', message: 'Data sent' });
+  });
+});
+
+
 
 // confirm email - confirm email with email verification key
 // if the key is expired, send a new verification e-mail

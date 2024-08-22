@@ -78,7 +78,7 @@ let __menu_content = `
 					<small id="userMenuUsername"></small><br><small id="userMenuEmail"></small>
 					<a href="/account.html">My Account</a>
 					<a id="userMenuSetups" href="/mysetups.html">${_("My Trainer Setups")}</a>
-					<button id="logoutButton">${_("Logout")}</button>
+					<button id="logoutButton">${_("Logout")}</button> <button id="exportPersonalDataButton">${_("GDPR Data Export")}</button>
 				</div>
 		</li>
 		</ul>
@@ -301,6 +301,26 @@ document.addEventListener("keydown", function(event) {
 		})
 	});
 
+	$("#exportPersonalDataButton").on("click", function() {
+		fetch(__api__market + "/user/exportdata", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status == "success") {
+				alert(data.message);
+			} else {
+				alert("Data export failed: " + data.message);
+			}
+		})
+		.catch(error => {
+			alert("Data export failed: " + error);
+		});
+	});
+
 	// event listener for the registration link
 	$("#registrationLink").on("click", function() {
 		$("#login-form").css("display", "none");
@@ -412,7 +432,6 @@ function checkLogin() {
 			$("#userMenuNickname").text(data.nickname);
 			$("#userMenuUsername").text(data.username);
 			$("#userMenuEmail").text(data.email);
-			$("#userMenuRole").text(data.role);
 		} else {
 			console.log("User not logged in");
 			$("#userLogin").css("display", "inline-block");
