@@ -191,6 +191,18 @@ let __menu_content = `
 
 let __menu_footer = `
 		<div id="tz"><div id="tztitle">${_("Timezone:")}&nbsp;</div><select id="tzchooser"></select></div>
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2117992780566693"
+     crossorigin="anonymous"></script>
+<!-- CoRT Footer -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-2117992780566693"
+     data-ad-slot="6378775003"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 		<p><i>CoRT is a free and open source website.</i></p>
 		<p>This is a fork of the <a href="https://github.com/mascaldotfr/CoRT" target="_blank">original CoRT project</a>. You can find the
 		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>, and report
