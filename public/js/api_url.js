@@ -5,7 +5,7 @@
 // the pull!
 
 // The root where all API files can be found
-export const __api__base = "https://cort.cor-forum.de";
+export const __api__base = "https://hail.thebus.top/CoRT";
 
 // The API url used by login and marketplace
 // check if the host is localhost, use http://localhost:8080/api/v1, else use https://api.cort.cor-forum.de/api/v1
@@ -22,5 +22,5 @@ export const __api__urls = {
 	"trainer_data": `${__api__base}/collect/data.txt`,
 	"events": `${__api__base}/warstatus/stats/allevents.json`,
 	"stats": `${__api__base}/warstatus/stats/statistics.json`,
-	"wstatus": `${__api__base}/warstatus/warstatus.json`
+	"wstatus": `https://cort.cor-forum.de/data/warstatus/warstatus.json`
 };
