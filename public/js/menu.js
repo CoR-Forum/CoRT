@@ -302,23 +302,25 @@ document.addEventListener("keydown", function(event) {
 	});
 
 	$("#exportPersonalDataButton").on("click", function() {
-		fetch(__api__market + "/user/exportdata", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			}
-		})
-		.then(response => response.json())
-		.then(data => {
-			if (data.status == "success") {
-				alert(data.message);
-			} else {
-				alert("Data export failed: " + data.message);
-			}
-		})
-		.catch(error => {
-			alert("Data export failed: " + error);
-		});
+		if (confirm("Click OK to send a GDPR compliant export of your personal data to your E-Mail address")) {
+			fetch(__api__market + "/user/exportdata", {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json"
+				}
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.status == "success") {
+					alert(data.message);
+				} else {
+					alert("Data export failed: " + data.message);
+				}
+			})
+			.catch(error => {
+				alert("Data export failed: " + error);
+			});
+		}
 	});
 
 	// event listener for the registration link

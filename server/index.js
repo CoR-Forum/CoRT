@@ -716,10 +716,9 @@ app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
     const text = 'Here is your GDPR compliant data export:' + JSON.stringify(user, null, 2);
     const html = `<p>Here is your GDPR compliant data export:</p><pre>${JSON.stringify(user, null, 2)}</pre>`;
     sendEmail(user.id, subject, text, html);
-    res.json({ status: 'success', message: 'Data sent' });
+    res.json({ status: 'success', message: 'Your data has been exported. Please check your e-mails.' });
   });
 });
-
 
 
 // confirm email - confirm email with email verification key
