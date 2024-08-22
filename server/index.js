@@ -629,7 +629,7 @@ app.get(API_PATH + '/user', checkAuth, (req, res) => {
 app.put(API_PATH + '/user', checkAuth, (req, res) => {
     const { email, nickname } = req.body;
     const updated_at = new Date();
-    logger.info('Updating user: ' + email, nickname);
+    logger.info('Updating user ID with new email ' + email + ' and nickname ' + nickname);
 
     // Check nickname requirements
     if (!checkNicknameRequirements(nickname)) {
@@ -643,64 +643,54 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
       return;
     }
     
+    // if email is changed, check if it is already in use.
+    // if not, update user and send email verification email
+    // if nickname is changed, check if it is already in use
+    // if not, update user
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
-        if (err) {
+      if (err) {
+        logger.error('Error querying database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      const user = result[0];
+      if (email !== user.email) {
+        db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
+          if (err) {
             logger.error('Error querying database: ' + err);
             res.status(500).send('Internal Server Error');
             return;
-        }
-        const user = result[0];
-        // Check if email is changed
-        if (email !== user.email) {
-          db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
-            if (err) {
-              logger.error('Error querying database: ' + err);
-              res.status(500).send('Internal Server Error');
-              return;
-            }
-            if (result.length > 0) {
-              res.json({ status: 'error', message: 'Email is already in use' });
-              return;
-            }
-            // check if nickname is changed
-            if (nickname !== user.nickname) {
-              checkNickname();
-            }
-          });
-        } else {
-          // check if nickname is changed
-          if (nickname !== user.nickname) {
-            checkNickname();
-          } else {
-            updateUserInfo();
           }
-        }
-
-        function checkNickname() {
-          db.query('SELECT * FROM users WHERE nickname = ?', [nickname], (err, result) => {
-            if (err) {
-              logger.error('Error querying database: ' + err);
-              res.status(500).send('Internal Server Error');
-              return;
-            }
-            if (result.length > 0) {
-              res.json({ status: 'error', message: 'Nickname is already in use' });
-              return;
-            }
-            updateUserInfo();
-          });
-        }
-
-        function updateUserInfo() {
-          db.query('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?', [nickname, updated_at, req.session.userId], (err, result) => {
+          if (result.length > 0) {
+            res.json({ status: 'error', message: 'Email already in use' });
+            return;
+          }
+          const email_verification_key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          const email_verification_expires = new Date();
+          email_verification_expires.setHours(email_verification_expires.getHours() + 1);
+          db.query('UPDATE users SET email = ?, nickname = ?, updated_at = ?, email_verified = FALSE, email_verification_key = ?, email_verification_expires = ? WHERE id = ?', [email, nickname, updated_at, email_verification_key, email_verification_expires, user.id], (err, result) => {
             if (err) {
               logger.error('Error updating user in database: ' + err);
               res.status(500).send('Internal Server Error');
               return;
             }
-            res.json({ status: 'success', message: 'User updated' });
+            const subject = 'Email Verification';
+            const text = 'Please click the link below to verify your email address:';
+            const html = `<p>Please click the link below to verify your email address:</p><a href="${HOST}/api/v1/user/email/verify/${email_verification_key}">${HOST}/api/v1/user/email/verify/${email_verification_key}</a>`;
+            sendEmail(user.id, subject, text, html);
+            res.json({ status: 'success', message: 'User updated. Please check your email for verification.' });
           });
-        }
+        });
+      } else {
+        db.query('UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?', [nickname, updated_at, user.id], (err, result) => {
+          if (err) {
+            logger.error('Error updating user in database: ' + err);
+            res.status(500).send('Internal Server Error');
+            return;
+          }
+          res.json({ status: 'success', message: 'User updated' });
+        });
+      }
     });
 });
 
