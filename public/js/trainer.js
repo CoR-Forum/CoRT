@@ -34,7 +34,7 @@ var automated_clicks = false;
 var tooltips = [];
 
 $(document).ready(function() {
-	document.title = "CoRT - " + _("Trainer");
+	document.title = _("Trainer") + "CoRT";
 	$("#title").text(_("Trainer"));
 	$("#titleinfo").text(
 		_("Hovering your mouse or clicking (on mobile) on a skill icon will show its description.") +
