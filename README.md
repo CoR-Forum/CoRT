@@ -16,10 +16,13 @@ page, and anonymous setup collection (see the `collect` directory) which by
 default only works for https://mascaldotfr.github.io and can be completely
 skipped.
 
-# About the Marketplace
+# About v2
 
-The marketplace server is required for the Market to run, right now there is
-no functionality tho.
+CoRT v2 is an extended version of CoRT running NodeJs.
+
+WZ Stats etc. are fetched from mascal's CoRT.
+
+Nearly all additions use a MySQL Database, so the Stats part needs to be rewritten to work with MySQL. CoRT v2 is not made to store dynamic files.
 
 ## Textures Paradise
 
