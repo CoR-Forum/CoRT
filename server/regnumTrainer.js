@@ -1,4 +1,5 @@
 const express = require('express');
+const router = express.Router();
 const db = require('./dbInit');
 const logger = require('./winston');
 const checkAuth = require('./middleware/checkAuth');
@@ -42,8 +43,6 @@ db.query(`CREATE TABLE IF NOT EXISTS trainer_setups (
     }
     logger.info('Table trainer_setup_ratings created or updated');
   });
-
-const router = express.Router();
 
 const API_PATH = process.env.API_PATH || '/api/v1';
 
