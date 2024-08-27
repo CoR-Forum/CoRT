@@ -1,7 +1,7 @@
 // this nodejs server will serve a rest api for the frontend to consume
 // everything will be in one file for simplicity
 
-const logger = require('./winstonLogger');
+const logger = require('./winston');
 
 // Environment variables
 require('dotenv').config();
@@ -355,15 +355,7 @@ app.use(
   })
 );
 
-
-// Middleware to check if user is logged in
-function checkAuth(req, res, next) {
-  if (req.session.userId) {
-      next(); // User is logged in, proceed to the next middleware
-  } else {
-      res.json({ status: 'unauthorized', message: 'Unauthorized, please login' });
-  }
-}
+const checkAuth = require('./middleware/checkAuth'); // Adjust the path as necessary
 
 // Routes
 // / will serve static files from ../ and /api/v1 will serve the rest api
@@ -793,30 +785,8 @@ app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
   });
 });
 
-// retrieve own trainer setups
-app.get(API_PATH + '/trainer/mysetups', checkAuth, (req, res) => {
-    db.query('SELECT * FROM trainer_setups WHERE user_id = ?', [req.session.userId], (err, result) => {
-        if (err) {
-            logger.error('Error querying database: ' + err);
-            res.status(500).send('Internal Server Error');
-            return;
-        }
-        res.send(result);
-    });
-});
-
-// retrieve all public trainer setups
-// include user nickname and id
-app.get(API_PATH + '/trainer/setups', (req, res) => {
-  db.query('SELECT trainer_setups.*, users.nickname, users.id AS user_id FROM trainer_setups JOIN users ON trainer_setups.user_id = users.id WHERE is_public = TRUE', (err, result) => {
-    if (err) {
-      logger.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-    res.send(result);
-  });
-});
+const trainerRoutes = require('./regnumTrainer'); // Adjust the path as necessary
+app.use(API_PATH, trainerRoutes);
 
 // retrieve the rating and recommendations of the trainer setup for the logged-in user
 app.get(API_PATH + '/trainer/myratings/:id', checkAuth, (req, res) => {

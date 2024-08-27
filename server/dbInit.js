@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const logger = require('./winstonLogger');
+const logger = require('./winston');
 
 require('dotenv').config();
 const DB_HOST = process.env.DB_HOST;
