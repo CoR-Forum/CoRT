@@ -1,26 +1,7 @@
 // this nodejs server will serve a rest api for the frontend to consume
 // everything will be in one file for simplicity
 
-// Winston logger
-const winston = require('winston');
-
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
-  ],
-});
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
-}
+const logger = require('./winstonLogger');
 
 // Environment variables
 require('dotenv').config();
