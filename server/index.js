@@ -41,23 +41,7 @@ const SMTP_FROM = process.env.SMTP_FROM;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
 // MySQL Database
-const mysql = require('mysql');
-
-const db = mysql.createConnection({
-  host: DB_HOST,
-  user: DB_USER,
-  password: DB_PASS,
-  database: DB_NAME,
-  port: DB_PORT,
-});
-
-db.connect((err) => {
-    if (err) {
-        logger.error('Database connection failed: ' + err.stack);
-        return;
-    }
-    logger.info('Connected to database ' + DB_NAME + ' on ' + DB_HOST + ':' + DB_PORT + ' (threadId ' + db.threadId + ')');
-    });
+const db = require('./dbInit'); // Adjust the path as necessary
 
 // check if database exists, if not create it
 // if it exists, check if tables exist, if not create them
@@ -786,32 +770,8 @@ app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
 });
 
 
-// confirm email - confirm email with email verification key
-// if the key is expired, send a new verification e-mail
-app.get(API_PATH + '/user/email/verify/:email_verification_key', (req, res) => {
-  const email_verification_key = req.params.email_verification_key;
-  logger.info('Verifying email with email verification key: ' + email_verification_key);
-  db.query('SELECT * FROM users WHERE email_verification_key = ? AND email_verification_expires > ?', [email_verification_key, new Date()], (err, result) => {
-    if (err) {
-      logger.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-    if (result.length === 0) {
-      res.json({ status: 'error', message: 'Invalid email verification key or expired' });
-      return;
-    }
-    const user = result[0];
-    db.query('UPDATE users SET email_verified = TRUE, email_verification_key = NULL, email_verification_expires = NULL WHERE id = ?', [user.id], (err, result) => {
-      if (err) {
-        logger.error('Error updating email verification in database: ' + err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-      res.json({ status: 'success', message: 'Email verified' });
-    });
-  });
-});
+const emailVerificationRouter = require('./emailVerification'); // Adjust the path as necessary
+app.use(API_PATH, emailVerificationRouter);
 
 // create trainer setup
 app.post(API_PATH + '/trainer/setup', checkAuth, (req, res) => {
