@@ -77,100 +77,6 @@ db.query(`CREATE TABLE IF NOT EXISTS characters (
   logger.info('Table characters created or updated');
 });
 
-// markets
-db.query(`CREATE TABLE IF NOT EXISTS markets (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  realm VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)`, (err, result) => {
-  if (err) {
-    logger.error('Error creating markets table:', err);
-    throw err;
-  }
-  logger.info('Table markets created or updated');
-});
-
-// private markets
-db.query(`CREATE TABLE IF NOT EXISTS private_markets (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  realm VARCHAR(255) NOT NULL,
-  user_id INT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)`, (err, result) => {
-  if (err) {
-    logger.error('Error creating private_markets table:', err);
-    throw err;
-  }
-  logger.info('Table private_markets created or updated');
-});
-
-// market items
-db.query(`CREATE TABLE IF NOT EXISTS market_items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  images TEXT NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  currency VARCHAR(255) NOT NULL CHECK (currency IN ('magnanite', 'euro')),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  market_id INT NOT NULL,
-  user_id INT NOT NULL,
-  type VARCHAR(255) NOT NULL CHECK (type IN ('auction', 'static')),
-  status VARCHAR(255) NOT NULL,
-  sold_at TIMESTAMP,
-  buyer_id INT,
-  sellType VARCHAR(255) NOT NULL,
-  item_type VARCHAR(255) NOT NULL CHECK (item_type IN ('weapon', 'armor', 'jewelry', 'misc', 'magnanite')),
-  bids INT DEFAULT 0
-)`, (err, result) => {
-  if (err) {
-    logger.error('Error creating market_items table:', err);
-    throw err;
-  }
-  logger.info('Table market_items created or updated');
-});
-
-// bids
-db.query(`CREATE TABLE IF NOT EXISTS bids (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  price DECIMAL(10,2) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  revoked BOOLEAN DEFAULT FALSE,
-  revoked_at TIMESTAMP,
-  market_item_id INT NOT NULL,
-  user_id INT NOT NULL
-)`, (err, result) => {
-  if (err) {
-    logger.error('Error creating bids table:', err);
-    throw err;
-  }
-  logger.info('Table bids created or updated');
-});
-
-// default markets. check if they exist, if not create them
-db.query('SELECT * FROM markets WHERE name = ?', ['Syrtis'], (err, result) => {
-  if (err) {
-    logger.error('Error checking markets table:', err);
-    throw err;
-  }
-  if (result.length === 0) {
-    db.query('INSERT INTO markets (name, description, realm) VALUES (?, ?, ?)', ['Syrtis', 'Market for Syrtis', 'Syrtis'], (err, result) => {
-      if (err) {
-        logger.error('Error creating default market:', err);
-        throw err;
-      }
-      logger.info('Default market created');
-    });
-  }
-});
-
 // regnum online resource server index
 db.query(`CREATE TABLE IF NOT EXISTS regnum_res (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -356,6 +262,8 @@ function checkEmailRequirements(email) {
 }
 const emailDoesNotMeetRequirements = 'Invalid email address.';
 
+const marketRoutes = require('./market');
+app.use(API_PATH, marketRoutes);
 
 // USERS
 app.post(API_PATH + '/register', (req, res) => {
