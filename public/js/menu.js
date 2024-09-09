@@ -250,17 +250,6 @@ $(document).ready(function() {
 
 	create_tz_list("#tzchooser");
 
-	// Add event listener to input fields
-document.addEventListener("keydown", function(event) {
-	if (event.keyCode === 13) { // Enter key
-		// Check if the login form is visible
-		if (document.getElementById("login-form").style.display !== "none") {
-			// Programmatically click the login button
-			document.getElementById("loginButton").click();
-		}
-	}
-});
-
 	// event listener for the login form
 	$("#userLogin").on("click", function() {
 		$("#login-form").css("display", "block");

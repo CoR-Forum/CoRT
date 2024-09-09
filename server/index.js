@@ -628,6 +628,52 @@ app.get(API_PATH + '/regnum/resources', (req, res) => {
   });
 });
 
+app.get(API_PATH + '/regnum/resources/datatables', (req, res) => {
+  const search = req.query.search ? req.query.search.value || '' : ''; // Handle missing search parameter
+  const start = parseInt(req.query.start) || 0; // Default start to 0
+  const length = parseInt(req.query.length) || 10; // Default length to 10
+  const type = req.query.type || ''; // Get the type parameter
+
+  // Build the query conditionally based on the presence of the type parameter
+  let query = 'SELECT * FROM regnum_res WHERE (name LIKE ? OR filename LIKE ?)';
+  let countQuery = 'SELECT COUNT(*) as count FROM regnum_res WHERE (name LIKE ? OR filename LIKE ?)';
+  const queryParams = ['%' + search + '%', '%' + search + '%'];
+  const countQueryParams = ['%' + search + '%', '%' + search + '%'];
+
+  if (type) {
+    query += ' AND type = ?';
+    countQuery += ' AND type = ?';
+    queryParams.push(type);
+    countQueryParams.push(type);
+  }
+
+  query += ' ORDER BY res_id ASC LIMIT ?, ?';
+  queryParams.push(start, length);
+
+  db.query(query, queryParams, (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    db.query(countQuery, countQueryParams, (err, countResult) => {
+      if (err) {
+        logger.error('Error querying database: ' + err);
+        return res.status(500).send('Internal Server Error');
+      }
+
+      res.json({
+        draw: parseInt(req.query.draw) || 0, // Handle missing draw parameter
+        recordsTotal: countResult[0].count,
+        recordsFiltered: countResult[0].count,
+        data: result
+      });
+    });
+  });
+});
+
+
+
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup
   function runWarstatus() {

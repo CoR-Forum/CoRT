@@ -1,323 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta property="og:image" content="/CoRT/favicon_512.png">
-		<title>Textures Paradise - Champions of Regnum</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses war warzone guerra status">
-		<meta name="description" content="All textures, icons and images for Champions of Regnum.">
-		<link rel="stylesheet" href="css/style.css">
-		<link rel="icon" type="image/png" href="favicon.png">
-		<link rel="apple-touch-icon" href="favicon.png" sizes="192x192">
-		<script type="module" src="js/menu.js"></script>
-		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2117992780566693"
-     crossorigin="anonymous"></script>
-		<style>
-			#textures-container {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-				grid-gap: 1rem;
-				margin-top: 1rem;
-			}
+<head>
+    <meta charset="utf-8">
+    <meta property="og:image" content="/CoRT/favicon_512.png">
+    <title>Textures Paradise - Champions of Regnum</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="regnumsentinel champions regnum online trainer entrenador bosses war warzone guerra status">
+    <meta name="description" content="All textures, icons and images for Champions of Regnum.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png" sizes="192x192">
+    <script type="module" src="js/menu.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2117992780566693"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.5/css/scroller.dataTables.min.css">
+    <style>
+        #resource-table {
+            background-color: transparent; /* Match the website's background color */
+        }
+        #resource-table tbody tr:hover {
+            background-color: transparent !important; /* Disable hover effect */
+        }
+        #resource-table tbody tr {
+            background-color: transparent; /* Match the website's background color */
+        }
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .type-filter {
+            margin-right: 40px; /* Add margin to create a break between the dropdown and buttons */
+        }
+        .example-search {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu" class="card"></div>
+    <div id="main-container" class="card">
+        <div class="bugnum but on your side">
+            <noscript>
+                For full functionality of this site it is necessary to enable JavaScript.
+                Here are the <a href="https://www.enable-javascript.com/">instructions how to enable JavaScript in your web browser</a>.
+            </noscript>
+        </div>
+        <h1 id="title">Textures Paradise</h1>
+        <div class="search-container">
+            <label for="type-filter">Filter by Type:</label>
+            <select id="type-filter" class="type-filter">
+                <option value="">All</option>
+                <option value="texture">Texture</option>
+				<option value="sound">Sound</option>
+            </select>
+            <div id="example-searches">
+                <button class="example-search" data-search="item">item</button>
+                <button class="example-search" data-search="gui">gui</button>
+				<button class="example-search" data-search="icon">icon</button>
+                <button class="example-search" data-search="icon power">icon power</button>
+                <button class="example-search" data-search="icon item">icon item</button>
+				<button class="example-search" data-search="icon monster">icon monster</button>
 
-			.texture {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
+            </div>
+        </div>
+        <table id="resource-table" class="display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Preview</th>
+                    <th>res_id</th>
+                    <th>Filename</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <button id="scroll-to-top" onclick="scrollToTop()"><img width="30px" src="data/img/scroll-to-top.png" /></button>
+    <div id="footer" class="card">
+        <div id="footer-menu"></div>
+    </div>
 
-			.texture img {
-				width: 100%;
-				height: auto;
-				max-width: 50px;
-				max-height: 50px;
-				cursor: url('../data/cursor/plus.png'), default;
-			}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.datatables.net/v/dt/dt-2.1.4/sc-2.4.3/datatables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/scroller/2.0.5/css/scroller.dataTables.min.css" rel="stylesheet">
+ 
+    <script src="https://cdn.datatables.net/v/dt/dt-2.1.4/sc-2.4.3/datatables.min.js"></script>
+    <script src="https://cdn.datatables.net/scroller/2.0.5/js/dataTables.scroller.min.js"></script>
+    <script>
+        // Function to get URL parameter
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
 
-			.texture p {
-				margin: 0.5rem 0;
-				text-align: center;
-			}
+        // Get parameters from the URL
+        const page = getUrlParameter('page') ? parseInt(getUrlParameter('page')) - 1 : 0;
+        const search = getUrlParameter('search') || '';
+        const pageSize = getUrlParameter('pageSize') ? parseInt(getUrlParameter('pageSize')) : 10;
+        const type = getUrlParameter('type') || '';
 
-			/* Add CSS styles for enlarged images */
-			.texture img.enlarged {
-				max-width: none;
-				max-height: none;
-				width: auto;
-				height: auto;
-				cursor: url('../data/cursor/minus.png'), default;
+        // Set the initial value of the type filter
+        document.getElementById('type-filter').value = type;
 
-			}
+        const table = new DataTable('#resource-table', {
+            ajax: {
+                url: '/api/v1/regnum/resources/datatables',
+                type: 'GET',
+                data: function(d) {
+                    d.type = document.getElementById('type-filter').value; // Add type filter to the request
+                },
+                dataSrc: 'data'
+            },
+            processing: true,
+            ordering: false,
+            searching: true,
+            serverSide: true,
+            lengthMenu: [10, 50, 100, 500],
+            pageLength: pageSize,
+            displayStart: page * pageSize, // Set the initial page
+            search: {
+                search: search // Set the initial search query
+            },
+            columns: [
+                { 
+                    data: 'filename',
+                    render: function(data, type, row) {
+                        if (row.type === 'sound') {
+                            return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/SOUND/' + data + '" type="audio/ogg"></audio>';
+                        } else {
+                            return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';
+                        }
+                    }
+                },
+                { data: 'res_id' },
+                { data: 'filename' },
+                { data: 'type' },
+                {
+                    data: 'filename',
+                    render: function(data) {
+                        return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank">Download</a>';
+                    }
+                }
+            ],
+        });
 
-			.sound {
-				display: flex;
-				flex-direction: column;
-			}
+        table.on('page', function() {
+            const info = table.page.info();
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('page', info.page + 1);
+            newUrl.searchParams.set('search', table.search());
+            newUrl.searchParams.set('pageSize', table.page.len());
+            newUrl.searchParams.set('type', document.getElementById('type-filter').value);
+            history.pushState(null, '', newUrl);
+        });
 
-			.sound img {
-				width: 50px;
-				height: auto;
-				align-self: center;
-			}
+        table.on('search.dt', function() {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('search', table.search());
+            newUrl.searchParams.set('page', table.page.info().page + 1);
+            newUrl.searchParams.set('pageSize', table.page.len());
+            newUrl.searchParams.set('type', document.getElementById('type-filter').value);
+            history.pushState(null, '', newUrl);
+        });
 
-			.sound p {
-				margin: 0.5rem 0;
-				text-align: center;
-			}
+        table.on('length.dt', function(e, settings, len) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('pageSize', len);
+            newUrl.searchParams.set('page', table.page.info().page + 1);
+            newUrl.searchParams.set('search', table.search());
+            newUrl.searchParams.set('type', document.getElementById('type-filter').value);
+            history.pushState(null, '', newUrl);
+        });
 
-			#search-input {
-				margin-bottom: 1rem;
-				border: 2px solid #ccc;
-				border-radius: 5px;
-				padding: 0.5rem;
-				font-size: 16px;
-				outline: none;
-				transition: border-color 0.3s ease-in-out;
-				margin: 0 auto;
-				display: block;
-				width: 20em;
-			}
+        document.getElementById('type-filter').addEventListener('change', function() {
+            table.ajax.reload();
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('type', this.value);
+            newUrl.searchParams.set('page', 1); // Reset to first page when filter changes
+            newUrl.searchParams.set('search', table.search());
+            newUrl.searchParams.set('pageSize', table.page.len());
+            history.pushState(null, '', newUrl);
+        });
 
-			#search-input:focus {
-				border-color: #007bff;
-				box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-			}
+        // Add event listeners to example search buttons
+        document.querySelectorAll('.example-search').forEach(button => {
+            button.addEventListener('click', function() {
+                const searchValue = this.getAttribute('data-search');
+                table.search(searchValue).draw();
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('search', searchValue);
+                newUrl.searchParams.set('page', 1); // Reset to first page when search changes
+                newUrl.searchParams.set('pageSize', table.page.len());
+                newUrl.searchParams.set('type', document.getElementById('type-filter').value);
+                history.pushState(null, '', newUrl);
+            });
+        });
 
-			#search-buttons {
-				margin-bottom: 1rem;
-				margin-top: 0.5rem;
-				display: flex;
-				justify-content: center;
-				gap: 0.5rem;
-			}
-
-			#loading-message {
-				display: none;
-				text-align: center;
-				margin-top: 1rem;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="menu" class="card"></div>
-		<div id="main-container">
-			<div class="bugnum but on your side">
-				<noscript>
-					For full functionality of this site it is necessary to enable JavaScript.
-					Here are the <a href="https://www.enable-javascript.com/">
-						instructions how to enable JavaScript in your web browser</a>.
-				</noscript>
-			</div>
-			<h1 id="title">Textures Paradise</h1>
-			<div id="titleinfo">By default, all images are thumbnails at 100x100px.<br>
-				Click on an image to enlarge and load it in full quality.</div>
-			<p class="center" id="last-update"></p>
-			<div class="card center">
-			<div id="filter">
-			<input type="text" id="search-input" placeholder="Search textures...">
-			<!-- dropdown to select between all, textures, and sounds -->
-			<select id="search-type">
-				<option value="all">Show All</option>
-				<option value="textures">Textures</option>
-				<option value="sounds">Sounds</option>
-			</select>
-			</div>
-			<div id="search-buttons">
-				<button class="search-button" onclick="fillSearchInput('gui')">gui</button>
-				<button class="search-button" onclick="fillSearchInput('map')">map</button>
-				<button class="search-button" onclick="fillSearchInput('icon power')">icon power</button>
-				<button class="search-button" onclick="fillSearchInput('icon item')">icon item</button>
-				<button class="search-button" onclick="fillSearchInput('icon monster')">icon monster</button>
-				<button class="search-button" onclick="fillSearchInput('')">reset search</button>
-			</div>
-		</div>
-			<div id="loading-message">Loading...</div>
-			<div id="textures-container" class="card"></div>
-
-			<script>
-				// load textures from /data/texturesparadise/files.json (format: {textures: [ { "filename": "texture.jpg", "name": "Texture 1"}, ... ]})
-				window.addEventListener('load', () => {
-					const loadingMessage = document.getElementById('loading-message');
-					const texturesContainer = document.getElementById('textures-container');
-					const searchInput = document.getElementById('search-input');
-
-												// Function to fill search input with a given value
-
-					// Show loading message
-					loadingMessage.style.display = 'block';
-
-					fetch('data/texturesparadise/files.json')
-						.then(response => response.json())
-						.then(data => {
-							// Hide loading message
-							loadingMessage.style.display = 'none';
-							texturesCount = data.textures.length;
-
-							// show last update date
-							const lastUpdate = new Date(data.lastUpdate);
-							document.getElementById('last-update').textContent = `Last update: ${lastUpdate.toLocaleString()}`;
-
-							// Function to render textures based on data
-							const renderTextures = (textures) => {
-								texturesContainer.innerHTML = '';
-
-								textures.forEach(texture => {
-									const textureElement = document.createElement('div');
-									textureElement.classList.add('texture');
-									const textureName = texture.filename.split('-')[1].split('.')[0].trim();
-									const textureId = texture.filename.split('-')[0].trim();
-									textureElement.innerHTML = `
-										<img src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/${texture.filename}" alt="${textureName}" loading="lazy">
-										<p>${textureName}</p>
-									`;
-									texturesContainer.appendChild(textureElement);
-								});
-							};
-
-							// Function to render sounds based on data
-							const renderSounds = (sounds) => {
-								sounds.forEach(sound => {
-									const soundElement = document.createElement('div');
-									soundElement.classList.add('sound');
-									const soundName = sound.filename.split('-')[1].split('.')[0].trim();
-									const soundId = sound.filename.split('-')[0].trim();
-									soundElement.innerHTML = `
-										<img src="/data/texturesparadise/ogg.png" width="50px" loading="lazy">
-										<p>${soundName}</p>
-										<!-- button to play sound -->
-										<p style="align-items:center">
-										<!-- button to create hidden audio element and play sound -->
-										<button onclick="new Audio('https://cor-forum.de/regnum/datengrab/res/SOUND/${sound.filename}').play()">Play</button>
-										<button onclick="window.open('https://cor-forum.de/regnum/datengrab/res/SOUND/${sound.filename}')">Download</button>
-										</p>
-									`;
-									texturesContainer.appendChild(soundElement);
-								});
-							};
-
-
-
-							// Function to filter textures based on search input
-							const filterTextures = () => {
-								const searchText = searchInput.value.toLowerCase();
-								const filteredTextures = data.textures.filter(texture => {
-									const filename = texture.filename.toLowerCase();
-									const filenameWithoutExtension = filename.split('.')[0];
-									return filenameWithoutExtension.includes(searchText);
-								});
-
-								renderTextures(filteredTextures);
-							};
-
-							// Function to filter sounds based on search input
-							const filterSounds = () => {
-								const searchText = searchInput.value.toLowerCase();
-								const filteredSounds = data.sounds.filter(sound => {
-									const filename = sound.filename.toLowerCase();
-									const filenameWithoutExtension = filename.split('.')[0];
-									return filenameWithoutExtension.includes(searchText);
-								});
-								
-								renderSounds(filteredSounds);
-							};
-
-							// Initial rendering of all textures and sounds
-							renderTextures(data.textures);
-							renderSounds(data.sounds);
-
-							// Add event listener to search input with sleep to prevent too many requests
-							let searchTimeout;
-							searchInput.addEventListener('input', () => {
-								clearTimeout(searchTimeout);
-								searchTimeout = setTimeout(() => {
-									const searchType = document.getElementById('search-type').value;
-									if (searchType === 'textures') {
-										texturesContainer.innerHTML = '';
-										filterTextures();
-									} else if (searchType === 'sounds') {
-										texturesContainer.innerHTML = '';
-										filterSounds();
-									} else {
-										texturesContainer.innerHTML = '';
-										filterTextures();
-										filterSounds();
-									}
-								}, 500);
-							});
-
-							// Add event listener to search type dropdown
-							document.getElementById('search-type').addEventListener('change', () => {
-								const searchType = document.getElementById('search-type').value;
-								if (searchType === 'textures') {
-									texturesContainer.innerHTML = '';
-									renderTextures(data.textures);
-								} else if (searchType === 'sounds') {
-									texturesContainer.innerHTML = '';
-									renderSounds(data.sounds);
-								} else {
-									texturesContainer.innerHTML = '';
-									renderTextures(data.textures);
-									renderSounds(data.sounds);
-								}
-							});
-
-							// set the search input placeholder to the number of textures and sounds
-							console.log(texturesCount);
-							searchInput.placeholder = `Search ${texturesCount} textures and sounds...`;
-						});
-				});
-
-				// Add click event listener to images and replace img src with full size image
-				document.getElementById('textures-container').addEventListener('click', (event) => {
-					const target = event.target;
-					if (target.tagName === 'IMG') {
-						if (target.classList.contains('enlarged')) {
-							target.classList.remove('enlarged');
-							target.src = target.src.replace('/TEXTURE/', '/TEXTURE/thumbnails/');
-						} else {
-							target.classList.add('enlarged');
-							target.src = target.src.replace('/TEXTURE/thumbnails/', '/TEXTURE/');
-						}
-					}
-				});
-
-				// Function to fill search input with a given value
-				function fillSearchInput(value) {
-					document.getElementById('search-input').value = value;
-					document.getElementById('search-input').dispatchEvent(new Event('input'));
-				}
-
-			</script>
-		</div>
-		<button id="scroll-to-top" onclick="scrollToTop()"><img width="30px" src="data/img/scroll-to-top.png" /></button>
-		<div id="footer" class="card">
-			<div id="footer-menu"></div>
-			<!-- Matomo -->
-			<script>
-				var _paq = window._paq = window._paq || [];
-				/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-				_paq.push(['trackPageView']);
-				_paq.push(['enableLinkTracking']);
-				(function() {
-				var u="//analytics.treudler.net/";
-				_paq.push(['setTrackerUrl', u+'matomo.php']);
-				_paq.push(['setSiteId', '20']);
-				var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-				g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-				})();
-			</script>
-			<noscript><p><img referrerpolicy="no-referrer-when-downgrade" src="//analytics.treudler.net/matomo.php?idsite=20&amp;rec=1" style="border:0;" alt="" /></p></noscript>
-			<!-- End Matomo Code -->
-		</div>
-	</body>
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
 </html>
-
-<script>
-	function scrollToTop() {
-	window.scrollTo({
-		top: 0,
-		behavior: 'smooth'
-	});
-}
-</script>
