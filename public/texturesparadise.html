@@ -36,6 +36,12 @@
         .example-search {
             margin-left: 5px;
         }
+		    .thumbnail {
+        transition: transform 0.2s ease-in-out;
+    }
+    .thumbnail:hover {
+        transform: scale(2); /* Enlarge the image to 100px (2 times the original size of 50px) */
+    }
     </style>
 </head>
 <body>
@@ -119,7 +125,7 @@
             ordering: false,
             searching: true,
             serverSide: true,
-            lengthMenu: [10, 50, 100, 500],
+            lengthMenu: [10, 50, 100, 500, 1000, 5000, 10000, 15000],
             pageLength: pageSize,
             displayStart: page * pageSize, // Set the initial page
             search: {
@@ -132,8 +138,7 @@
                         if (row.type === 'sound') {
                             return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/SOUND/' + data + '" type="audio/ogg"></audio>';
                         } else {
-                            return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';
-                        }
+							return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img class="thumbnail" height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';                        }
                     }
                 },
                 { data: 'res_id' },
