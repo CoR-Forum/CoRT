@@ -95,45 +95,25 @@ db.query(`CREATE TABLE IF NOT EXISTS regnum_res (
   logger.info('Table regnum_res created or updated');
 });
 
-// import regnum online resource server index from json file
-// it contains the filename and needs to be converted
-// 12345-Filename-goes-here.png -> ID 12345, Name Filename goes here, Filename 12345-Filename-goes-here.png
-//const regnumRes = require('../public/data/texturesparadise/files.json');
-//if (Array.isArray(regnumRes.textures)) {
-//  for (const res of regnumRes.textures) {
-//    const res_id = parseInt(res.filename.split('-')[0]);
-//    const filename = res.filename;
-//    const type = 'texture';
-//    const name = res.filename.split('-').slice(1).join(' ').split('.')[0];
-//    const url = "https://cor-forum.de/regnum/datengrab/res/" + type.toUpperCase + "/" + res.filename;
-//    db.query('INSERT INTO regnum_res (res_id, filename, name, type, url) VALUES (?, ?, ?, ?, ?)', [res_id, filename, name, type, url], (err) => {
-//      if (err) {
-//        logger.error('Error inserting regnum_res into database:', err);
-//        throw err;
-//      }
-//    });
-//  }
-//} else {
-//  logger.error('regnumRes.textures is not an array');
-//}
-//
-//if (Array.isArray(regnumRes.sounds)) {
-//  for (const res of regnumRes.sounds) {
-//    const res_id = parseInt(res.filename.split('-')[0]);
-//    const filename = res.filename;
-//    const type = 'sound';
-//    const name = res.filename.split('-').slice(1).join(' ').split('.')[0];
-//    const url = "https://cor-forum.de/regnum/datengrab/res/" + type.toUpperCase + "/" + res.filename;
-//    db.query('INSERT INTO regnum_res (res_id, filename, name, type, url) VALUES (?, ?, ?, ?, ?)', [res_id, filename, name, type, url], (err) => {
-//      if (err) {
-//        logger.error('Error inserting regnum_res into database:', err);
-//        throw err;
-//      }
-//    });
-//  }
-//} else {
-//  logger.error('regnumRes.sounds is not an array');
-//}
+const regnumRes = require('../public/data/texturesparadise/files.json');
+
+// if (Array.isArray(regnumRes.music)) {
+//   for (const res of regnumRes.music) {
+//     const res_id = parseInt(res.filename.split('-')[0]);
+//     const filename = res.filename;
+//     const type = 'music';
+//     const name = res.filename.split('-').slice(1).join(' ').split('.')[0];
+//     const url = "https://cor-forum.de/regnum/datengrab/res/" + type.toUpperCase() + "/" + res.filename;
+//     db.query('INSERT INTO regnum_res (res_id, filename, name, type, url) VALUES (?, ?, ?, ?, ?)', [res_id, filename, name, type, url], (err) => {
+//       if (err) {
+//         logger.error('Error inserting regnum_res into database:', err);
+//         throw err;
+//       }
+//     });
+//   }
+// } else {
+//   logger.error('regnumRes.music is not an array');
+// }
 
 // E-Mails
 

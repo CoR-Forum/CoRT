@@ -60,6 +60,7 @@
                 <option value="">All</option>
                 <option value="texture">Texture</option>
 				<option value="sound">Sound</option>
+                <option value="music">Music</option>
             </select>
             <div id="example-searches">
                 <button class="example-search" data-search="item">item</button>
@@ -137,6 +138,8 @@
                     render: function(data, type, row) {
                         if (row.type === 'sound') {
                             return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/SOUND/' + data + '" type="audio/ogg"></audio>';
+                        } else if (row.type === 'music') {
+                            return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/MUSIC/' + data + '" type="audio/ogg"></audio>';
                         } else {
 							return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img class="thumbnail" height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';                        }
                     }
