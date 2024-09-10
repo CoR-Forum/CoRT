@@ -56,7 +56,7 @@ let __menu_content = `
 		<li class="menuitem bold menu-dropdown">
 			<a href="#">${__menu_icons["wstats"]} ${_("Archive")}</a>
 			<div class="menuitem menu-dropdown-content">
-				<a href="texturesparadise.html">${__menu_icons["wstats"]} ${_("Textures Paradise")}</a>
+				<a href="resourcesparadise.html">${__menu_icons["wstats"]} ${_("Resources Paradise")}</a>
 				<a href="worldcup-event-archive.html">${__menu_icons["wstats"]} ${_("Worldcup Event Ranking Archive")}</a>
 				<a href="timeline.html">${__menu_icons["wstats"]} ${_("Manuka's Timeline")}</a>
 			</div>

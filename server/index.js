@@ -95,7 +95,7 @@ db.query(`CREATE TABLE IF NOT EXISTS regnum_res (
   logger.info('Table regnum_res created or updated');
 });
 
-const regnumRes = require('../public/data/texturesparadise/files.json');
+const regnumRes = require('../public/data/resourcesparadise/files.json');
 
 // if (Array.isArray(regnumRes.music)) {
 //   for (const res of regnumRes.music) {
@@ -668,6 +668,10 @@ if (process.env.NODE_ENV === 'production') {
   runWarstatus();
   setInterval(runWarstatus, 60000);
 }
+
+app.get('/texturesparadise.html', (req, res) => {
+  res.redirect(301, '/resourcesparadise.html' + (req._parsedUrl.search || ''));
+});
 
 // Start server
 app.listen(PORT, () => {
