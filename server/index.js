@@ -617,6 +617,9 @@ app.use(API_PATH, emailVerificationRouter);
 const trainerRoutes = require('./regnumTrainer'); // Adjust the path as necessary
 app.use(API_PATH, trainerRoutes);
 
+const cortNewsRoutes = require('./cortNews'); // Adjust the path as necessary
+app.use(API_PATH, cortNewsRoutes);
+
 // get all regnum resources
 app.get(API_PATH + '/regnum/resources', (req, res) => {
   db.query('SELECT * FROM regnum_res', (err, result) => {
