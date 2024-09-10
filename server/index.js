@@ -44,7 +44,7 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
   active BOOLEAN DEFAULT FALSE,
   last_login TIMESTAMP,
   last_ip VARCHAR(255),
-  last_gdpr_export TIMESTAMP,
+  last_gdpr_export TIMESTAMP DEFAULT NULL,
   password_reset_key VARCHAR(255),
   password_reset_expires TIMESTAMP,
   password_reset_ip VARCHAR(255)
