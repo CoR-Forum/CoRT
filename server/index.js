@@ -668,27 +668,17 @@ app.get(API_PATH + '/regnum/resources/datatables', (req, res) => {
   query += ' ORDER BY regnum_res.res_id ASC LIMIT ?, ?';
   queryParams.push(start, length);
 
-  // Log the query and parameters for debugging
-  console.log('Executing query:', query);
-  console.log('With parameters:', queryParams);
-
   db.query(query, queryParams, (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       return res.status(500).send('Internal Server Error');
     }
 
-    // Log the result for debugging
-    console.log('Query result:', result);
-
     db.query(countQuery, countQueryParams, (err, countResult) => {
       if (err) {
         logger.error('Error querying database: ' + err);
         return res.status(500).send('Internal Server Error');
       }
-
-      // Log the count result for debugging
-      console.log('Count query result:', countResult);
 
       res.json({
         draw: parseInt(req.query.draw) || 0, // Handle missing draw parameter
