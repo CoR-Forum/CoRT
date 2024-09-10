@@ -406,7 +406,12 @@ app.get(API_PATH + '/activate/:registration_key', (req, res) => {
         res.status(500).send('Internal Server Error');
         return;
       }
-      res.send('User activated. You can now login <a href="/#login">here</a>.');
+      res.send(`
+        <script>
+          alert('User activated. You can now login.');
+          window.location.href = '/#login';
+        </script>
+      `);
     });
   });
 });
