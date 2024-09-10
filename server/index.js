@@ -95,6 +95,20 @@ db.query(`CREATE TABLE IF NOT EXISTS regnum_res (
   logger.info('Table regnum_res created or updated');
 });
 
+// regnum online resource user favorites
+db.query(`CREATE TABLE IF NOT EXISTS regnum_res_favorites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  res_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating regnum_res_favorites table:', err);
+    throw err;
+  }
+  logger.info('Table regnum_res_favorites created or updated');
+});
+
 const regnumRes = require('../public/data/resourcesparadise/files.json');
 
 // if (Array.isArray(regnumRes.music)) {
@@ -609,26 +623,49 @@ app.get(API_PATH + '/regnum/resources', (req, res) => {
 });
 
 app.get(API_PATH + '/regnum/resources/datatables', (req, res) => {
-  const search = req.query.search ? req.query.search.value || '' : ''; // Handle missing search parameter
+  const search = (req.query.search && typeof req.query.search === 'object' && 'value' in req.query.search) ? req.query.search.value : ''; // Handle missing search parameter
   const start = parseInt(req.query.start) || 0; // Default start to 0
   const length = parseInt(req.query.length) || 10; // Default length to 10
   const type = req.query.type || ''; // Get the type parameter
+  const favorites = req.query.favorites === 'true'; // Get the favorites parameter and convert to boolean
 
-  // Build the query conditionally based on the presence of the type parameter
-  let query = 'SELECT * FROM regnum_res WHERE (name LIKE ? OR filename LIKE ?)';
-  let countQuery = 'SELECT COUNT(*) as count FROM regnum_res WHERE (name LIKE ? OR filename LIKE ?)';
-  const queryParams = ['%' + search + '%', '%' + search + '%'];
-  const countQueryParams = ['%' + search + '%', '%' + search + '%'];
+  // Build the query conditionally based on the presence of the type and favorites parameters
+  let query = 'SELECT regnum_res.*, IF(regnum_res_favorites.res_id IS NULL, FALSE, TRUE) AS favorite FROM regnum_res';
+  let countQuery = 'SELECT COUNT(*) as count FROM regnum_res';
+  const queryParams = [];
+  const countQueryParams = [];
+
+  if (favorites) {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).send('Unauthorized');
+    }
+    query += ' INNER JOIN regnum_res_favorites ON regnum_res.res_id = regnum_res_favorites.res_id AND regnum_res_favorites.user_id = ?';
+    countQuery += ' INNER JOIN regnum_res_favorites ON regnum_res.res_id = regnum_res_favorites.res_id AND regnum_res_favorites.user_id = ?';
+    queryParams.push(req.session.userId);
+    countQueryParams.push(req.session.userId);
+  } else {
+    query += ' LEFT JOIN regnum_res_favorites ON regnum_res.res_id = regnum_res_favorites.res_id AND regnum_res_favorites.user_id = ?';
+    queryParams.push(req.session.userId || null);
+  }
+
+  query += ' WHERE (regnum_res.name LIKE ? OR regnum_res.filename LIKE ?)';
+  countQuery += ' WHERE (regnum_res.name LIKE ? OR regnum_res.filename LIKE ?)';
+  queryParams.push('%' + search + '%', '%' + search + '%');
+  countQueryParams.push('%' + search + '%', '%' + search + '%');
 
   if (type) {
-    query += ' AND type = ?';
-    countQuery += ' AND type = ?';
+    query += ' AND regnum_res.type = ?';
+    countQuery += ' AND regnum_res.type = ?';
     queryParams.push(type);
     countQueryParams.push(type);
   }
 
-  query += ' ORDER BY res_id ASC LIMIT ?, ?';
+  query += ' ORDER BY regnum_res.res_id ASC LIMIT ?, ?';
   queryParams.push(start, length);
+
+  // Log the query and parameters for debugging
+  console.log('Executing query:', query);
+  console.log('With parameters:', queryParams);
 
   db.query(query, queryParams, (err, result) => {
     if (err) {
@@ -636,11 +673,17 @@ app.get(API_PATH + '/regnum/resources/datatables', (req, res) => {
       return res.status(500).send('Internal Server Error');
     }
 
+    // Log the result for debugging
+    console.log('Query result:', result);
+
     db.query(countQuery, countQueryParams, (err, countResult) => {
       if (err) {
         logger.error('Error querying database: ' + err);
         return res.status(500).send('Internal Server Error');
       }
+
+      // Log the count result for debugging
+      console.log('Count query result:', countResult);
 
       res.json({
         draw: parseInt(req.query.draw) || 0, // Handle missing draw parameter
@@ -652,7 +695,34 @@ app.get(API_PATH + '/regnum/resources/datatables', (req, res) => {
   });
 });
 
-
+// toggle favorite regnum resource by res_id for authenticated user
+app.post(API_PATH + '/regnum/resources/favorite/:res_id', checkAuth, (req, res) => {
+  const res_id = req.params.res_id;
+  const user_id = req.session.userId;
+  db.query('SELECT * FROM regnum_res_favorites WHERE res_id = ? AND user_id = ?', [res_id, user_id], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    if (result.length > 0) {
+      db.query('DELETE FROM regnum_res_favorites WHERE res_id = ? AND user_id = ?', [res_id, user_id], (err) => {
+        if (err) {
+          logger.error('Error querying database: ' + err);
+          return res.status(500).send('Internal Server Error');
+        }
+        res.json({ status: 'success', message: 'Resource removed from favorites' });
+      });
+    } else {
+      db.query('INSERT INTO regnum_res_favorites (user_id, res_id) VALUES (?, ?)', [user_id, res_id], (err) => {
+        if (err) {
+          logger.error('Error querying database: ' + err);
+          return res.status(500).send('Internal Server Error');
+        }
+        res.json({ status: 'success', message: 'Resource added to favorites' });
+      });
+    }
+  });
+});
 
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup

@@ -69,8 +69,8 @@
                 <button class="example-search" data-search="icon power">icon power</button>
                 <button class="example-search" data-search="icon item">icon item</button>
 				<button class="example-search" data-search="icon monster">icon monster</button>
-
             </div>
+            <input type="checkbox" id="favorites-filter" class="favorites-filter"> <label for="favorites-filter">Favorites</label>
         </div>
         <table id="resource-table" class="display nowrap" style="width:100%">
             <thead>
@@ -114,47 +114,58 @@
         document.getElementById('type-filter').value = type;
 
         const table = new DataTable('#resource-table', {
-            ajax: {
-                url: '/api/v1/regnum/resources/datatables',
-                type: 'GET',
-                data: function(d) {
-                    d.type = document.getElementById('type-filter').value; // Add type filter to the request
-                },
-                dataSrc: 'data'
-            },
-            processing: true,
-            ordering: false,
-            searching: true,
-            serverSide: true,
-            lengthMenu: [10, 50, 100, 500, 1000, 5000, 10000, 15000],
-            pageLength: pageSize,
-            displayStart: page * pageSize, // Set the initial page
-            search: {
-                search: search // Set the initial search query
-            },
-            columns: [
-                { 
-                    data: 'filename',
-                    render: function(data, type, row) {
-                        if (row.type === 'sound') {
-                            return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/SOUND/' + data + '" type="audio/ogg"></audio>';
-                        } else if (row.type === 'music') {
-                            return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/MUSIC/' + data + '" type="audio/ogg"></audio>';
-                        } else {
-							return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img class="thumbnail" height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';                        }
-                    }
-                },
-                { data: 'res_id' },
-                { data: 'filename' },
-                { data: 'type' },
-                {
-                    data: 'filename',
-                    render: function(data) {
-                        return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank">Download</a>';
-                    }
-                }
-            ],
-        });
+    ajax: {
+        url: '/api/v1/regnum/resources/datatables',
+        type: 'GET',
+        data: function(d) {
+            d.type = document.getElementById('type-filter').value; // Add type filter to the request
+        },
+        dataSrc: 'data'
+    },
+    processing: true,
+    ordering: false,
+    searching: true,
+    serverSide: true,
+    lengthMenu: [10, 50, 100, 500, 1000, 5000, 10000, 15000],
+pageLength: pageSize,
+displayStart: page * pageSize, // Set the initial page
+search: {
+    search: search // Set the initial search query
+},
+columns: [
+    { 
+        data: 'filename',
+        render: function(data, type, row) {
+            if (row.type === 'sound') {
+                return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/SOUND/' + data + '" type="audio/ogg"></audio>';
+            } else if (row.type === 'music') {
+                return '<audio controls><source src="https://cor-forum.de/regnum/datengrab/res/MUSIC/' + data + '" type="audio/ogg"></audio>';
+            } else {
+                return '<a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/' + data + '" target="_blank"><img class="thumbnail" height="50px" src="https://cor-forum.de/regnum/datengrab/res/TEXTURE/thumbnails/' + data + '"/></a>';                        
+            }
+        }
+    },
+    { 
+        data: null,
+        render: function(data, type, row) {
+            return row.res_id;
+        }
+    },
+    { data: 'filename' },
+    { data: 'type' },
+    {
+        data: null,
+        render: function(data, type, row) {
+            return `
+            <a href="https://cor-forum.de/regnum/datengrab/res/TEXTURE/${row.filename}" target="_blank">Download</a>
+            <span class="star-icon" onclick="toggleFavorite(${row.res_id})">
+                ${row.favorite === 1 ? '&#9733;' : '&#9734;'}
+            </span>
+            `;
+        }
+    }
+],
+});
 
         table.on('page', function() {
             const info = table.page.info();
@@ -207,6 +218,41 @@
                 history.pushState(null, '', newUrl);
             });
         });
+
+        // Add event listener to favorites filter checkbox, it should modify the API URL to include the favorites filter
+        document.getElementById('favorites-filter').addEventListener('change', function() {
+                        // Check if user session is found in cookies
+                        if (!checkUserSession()) {
+            alert("Please login to save your favorite resources.");
+            this.checked = false;
+            return;
+            }
+            table.ajax.url(`/api/v1/regnum/resources/datatables?favorites=${this.checked}`).load();
+        });
+
+        // function to toggle favorite status via /regnum/resources/favorite/:res_id
+        function toggleFavorite(res_id) {
+            // Check if user session is found in cookies
+            if (!checkUserSession()) {
+            alert("Please login to save your favorite resources.");
+            return;
+            }
+
+            $.ajax({
+            url: `/api/v1/regnum/resources/favorite/${res_id}`,
+            type: 'POST',
+            success: function(response) {
+                table.draw(false);
+            }
+            });
+        };
+
+        function checkUserSession() {
+            // Check if user session is found local storage
+            if (localStorage.getItem('user')) {
+            return true;
+            }
+        }
 
         function scrollToTop() {
             window.scrollTo({
