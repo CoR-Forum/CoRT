@@ -23,6 +23,7 @@ let __menu_icons = {
 	"tstats": `<svg xmlns="http://www.w3.org/2000/svg" class="menu-icon" viewBox="0 0 36 36"><path fill="#CCD6DD" d="M31 2H5C3.343 2 2 3.343 2 5v26c0 1.657 1.343 3 3 3h26c1.657 0 3-1.343 3-3V5c0-1.657-1.343-3-3-3z"/><path fill="#E1E8ED" d="M31 1H5C2.791 1 1 2.791 1 5v26c0 2.209 1.791 4 4 4h26c2.209 0 4-1.791 4-4V5c0-2.209-1.791-4-4-4zm0 2c1.103 0 2 .897 2 2v4h-6V3h4zm-4 16h6v6h-6v-6zm0-2v-6h6v6h-6zM25 3v6h-6V3h6zm-6 8h6v6h-6v-6zm0 8h6v6h-6v-6zM17 3v6h-6V3h6zm-6 8h6v6h-6v-6zm0 8h6v6h-6v-6zM3 5c0-1.103.897-2 2-2h4v6H3V5zm0 6h6v6H3v-6zm0 8h6v6H3v-6zm2 14c-1.103 0-2-.897-2-2v-4h6v6H5zm6 0v-6h6v6h-6zm8 0v-6h6v6h-6zm12 0h-4v-6h6v4c0 1.103-.897 2-2 2z"/><path fill="#DD2E44" d="M4.998 33c-.32 0-.645-.076-.946-.239-.973-.523-1.336-1.736-.813-2.709l7-13c.299-.557.845-.939 1.47-1.031.626-.092 1.258.118 1.705.565l6.076 6.076 9.738-18.59c.512-.978 1.721-1.357 2.699-.843.979.512 1.356 1.721.844 2.7l-11 21c-.295.564-.841.953-1.47 1.05-.627.091-1.266-.113-1.716-.563l-6.1-6.099-5.724 10.631C6.4 32.619 5.71 33 4.998 33z"/></svg>`,
 	"armor": `<svg xmlns="http://www.w3.org/2000/svg" class="menu-icon" viewBox="0 0 36 36"><path fill="#CCD6DD" d="M33 3c-7-3-15-3-15-3S10 0 3 3C0 18 3 31 18 36c15-5 18-18 15-33z"/><path fill="#55ACEE" d="M18 33.884C6.412 29.729 1.961 19.831 4.76 4.444 11.063 2.029 17.928 2 18 2c.071 0 6.958.04 13.24 2.444 2.799 15.387-1.652 25.285-13.24 29.44z"/><path fill="#269" d="M31.24 4.444C24.958 2.04 18.071 2 18 2v31.884c11.588-4.155 16.039-14.053 13.24-29.44z"/></svg>`,
 	"map": `<img src="/data/img/map.png" class="menu-icon" alt="Map" />`,
+	"timeline": `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g clip-path="url(#clip0)"> <rect width="48" height="48" fill="white" fill-opacity="0.01"></rect> <path d="M48 0H0V48H48V0Z" fill="white" fill-opacity="0.01"></path> <path d="M13 12C13 14.2091 14.7909 16 17 16C19.2091 16 21 14.2091 21 12C21 9.79086 19.2091 8 17 8C14.7909 8 13 9.79086 13 12Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"></path> <path d="M31 24C31 26.2091 32.7909 28 35 28C37.2091 28 39 26.2091 39 24C39 21.7909 37.2091 20 35 20C32.7909 20 31 21.7909 31 24Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"></path> <path d="M13 36C13 38.2091 14.7909 40 17 40C19.2091 40 21 38.2091 21 36C21 33.7909 19.2091 32 17 32C14.7909 32 13 33.7909 13 36Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"></path> <path d="M4 36H13" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> <path d="M21 36H44" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> <path d="M4 12H13" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> <path d="M21 12H44" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> <path d="M4 4V44" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M4 24H31" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> <path d="M39 24H44" stroke="#000000" stroke-width="4" stroke-linecap="round"></path> </g> <defs> <clipPath id="clip0"> <rect width="48" height="48" fill="white"></rect> </clipPath> </defs> </g></svg>`,
 	"rankingarchive": `<img src="/data/img/rankingarchive.png" class="menu-icon" alt="Map" />`,
 	"user": `<img src="/data/img/user.png" class="menu-icon" alt="User" />`,
 
@@ -58,7 +59,7 @@ let __menu_content = `
 			<div class="menuitem menu-dropdown-content">
 				<a href="resourcesparadise.html">${__menu_icons["wstats"]} ${_("Resources Paradise")}</a>
 				<a href="worldcup-event-archive.html">${__menu_icons["wstats"]} ${_("Worldcup Event Ranking Archive")}</a>
-				<a href="timeline.html">${__menu_icons["wstats"]} ${_("Manuka's Timeline")}</a>
+				<a href="timeline.html">${__menu_icons["timeline"]} ${_("Manuka's Timeline")}</a>
 			</div>
 		</li>
 		<li class="menuitem"><a href="https://poludnica.shinyapps.io/rcalc/" target="_blank">
@@ -203,14 +204,11 @@ let __menu_footer = `
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-		<p><i>CoRT is a free and open source website.</i></p>
-		<p>This is a fork of the <a href="https://github.com/mascaldotfr/CoRT" target="_blank">original CoRT project</a>. You can find the
-		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>, and report
-		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">bugs</a>.
-		<!-- See also the <a href="https://discord.gg/P5BJRtTx3R">Discord server</a> and
-		<a href="irc://irc.quakenet.org/regnum-online">IRC channel</a>!</i --></p>
-		<p> <!--VERSION-->Version: 20240724</p>
+		<p><i>CoRT is a free and open source website.</i> This is a fork of the <a href="https://github.com/mascaldotfr/CoRT" target="_blank">original CoRT project</a></p>
+		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">report bugs</a>
+		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>
 		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">Changelog</a>
+		<img height="20px" src="https://analytics.treudler.net/index.php?module=ClassicCounter&action=svg&idSite=20&period=day&mode=nb_actions">
 `;
 
 $(document).ready(function() {
