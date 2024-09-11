@@ -24,7 +24,7 @@ WZ Stats etc. are fetched from mascal's CoRT.
 
 Nearly all additions use a MySQL Database, so the Stats part needs to be rewritten to work with MySQL. CoRT v2 is not made to store dynamic files.
 
-## Textures Paradise
+## Resources Paradise
 
 Please refer to [regnum-online-resources-crawler](https://github.com/CoR-Forum/regnum-online-resources-crawler/).
 
