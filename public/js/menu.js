@@ -205,10 +205,12 @@ let __menu_footer = `
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 		<p><i>CoRT is a free and open source website.</i> This is a fork of the original CoRT Project by <a href="https://github.com/mascaldotfr/" target="_blank">mascal</a>.</p>
-		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">report bugs</a>
-		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">source code</a>
-		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">changelog</a>
+		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">Report Bugs</a>
+		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">Source Code</a>
+		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">Changelog</a>
 		<img height="20px" src="https://analytics.treudler.net/index.php?module=ClassicCounter&action=svg&idSite=20&period=day&mode=nb_actions">
+		<br>		<a href="/imprint.html">${_("Imprint")}</a>
+
 `;
 
 $(document).ready(function() {
