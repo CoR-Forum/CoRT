@@ -581,29 +581,18 @@ app.put(API_PATH + '/user', checkAuth, (req, res) => {
 // GDPR export data - export user data in JSON format and send it via email
 app.get(API_PATH + '/user/exportdata', checkAuth, (req, res) => {
   db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
-    if (err) {
-      logger.error('Error querying database: ' + err);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-
-    // check if user has requested data export in the last 60 seconds
+    if (err) return res.status(500).send('Internal Server Error');
     if (result[0].last_gdpr_export && new Date(result[0].last_gdpr_export).getTime() > new Date().getTime() - 60000) {
-      res.json({ status: 'error', message: 'You have already requested a data export. Please wait a minute before requesting another one.' });
-      return;
+      return res.json({ status: 'error', message: 'Please wait a minute before requesting another export.' });
     }
-
     const user = result[0];
+    user.password = user.registration_key = '********'; // Obfuscate sensitive data
     const subject = 'Your CoRT GDPR Data Export';
     const text = 'Here is your GDPR compliant data export:' + JSON.stringify(user, null, 2);
     const html = `<p>Here is your GDPR compliant data export:</p><pre>${JSON.stringify(user, null, 2)}</pre>`;
     sendEmail(user.id, subject, text, html);
-    const updated_at = new Date();
-    db.query('UPDATE users SET last_gdpr_export = ? WHERE id = ?', [updated_at, user.id], (err, result) => {
-      if (err) {
-        logger.error('Error updating last_gdpr_export: ' + err);
-        return;
-      }
+    db.query('UPDATE users SET last_gdpr_export = ? WHERE id = ?', [new Date(), user.id], (err) => {
+      if (err) return res.status(500).send('Internal Server Error');
       res.json({ status: 'success', message: 'Your data has been exported. Please check your e-mails.' });
     });
   });
