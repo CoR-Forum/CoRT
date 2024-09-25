@@ -1,6 +1,9 @@
 // this nodejs server will serve a rest api for the frontend to consume
 // everything will be in one file for simplicity
 
+const fs = require('fs');
+const path = require('path');
+
 const logger = require('./winston');
 
 // Environment variables
@@ -129,6 +132,61 @@ const regnumRes = require('../public/data/resourcesparadise/files.json');
 //   logger.error('regnumRes.music is not an array');
 // }
 
+// timeline database
+db.query(`CREATE TABLE IF NOT EXISTS timeline_events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description_de TEXT,
+  start TIMESTAMP NOT NULL,
+  end TIMESTAMP,
+  latestStart TIMESTAMP,
+  earliestEnd TIMESTAMP,
+  classname VARCHAR(255),
+  durationEvent BOOLEAN DEFAULT FALSE,
+  link TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating timeline_events table:', err);
+    throw err;
+  }
+  logger.info('Table timeline_events created or updated');
+});
+
+// // Load initial data into timeline_events table from a JSON file
+// const timelineEventsPath = path.join(__dirname, '../public/data/timeline/scripts/timeline/regnum.json');
+// const timelineEventsData = fs.readFileSync(timelineEventsPath, 'utf8');
+// const timelineEvents = JSON.parse(timelineEventsData).events;
+// 
+// const moment = require('moment');
+// 
+// (async () => {
+//   for (let i = 0; i < timelineEvents.length; i++) {
+//     const event = timelineEvents[i];
+//     const formattedStart = moment(event.start, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss");
+//     const formattedEnd = event.end ? moment(event.end, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
+//     const formattedEarliestEnd = event.earliestEnd ? moment(event.earliestEnd, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
+//     const formattedLatestStart = event.latestStart ? moment(event.latestStart, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
+// 
+//     try {
+//       await new Promise((resolve, reject) => {
+//         db.query('INSERT INTO timeline_events (title, description_de, start, end, earliestEnd, classname, durationEvent, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [event.title, event.description, formattedStart, formattedEnd, formattedEarliestEnd, event.classname, event.durationEvent, event.link], (err) => {
+//           if (err) {
+//             logger.error('Error inserting timeline_events into database:', err);
+//             return reject(err);
+//           }
+//           resolve();
+//         });
+//       });
+//       console.log(`Inserted event ${i + 1} of ${timelineEvents.length}`);
+//     } catch (err) {
+//       console.error(`Failed to insert event ${i + 1} of ${timelineEvents.length}`);
+//     }
+//   }
+//   console.log('All events have been processed');
+// })();
+
 // E-Mails
 
 const nodemailer = require('nodemailer');
@@ -195,7 +253,6 @@ app.use(bodyParser.json());
 // Session
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const fs = require('fs');
 const { exec } = require('child_process');
 
 const sessionStore = new MySQLStore({
@@ -258,6 +315,35 @@ const emailDoesNotMeetRequirements = 'Invalid email address.';
 
 const marketRoutes = require('./market');
 app.use(API_PATH, marketRoutes);
+
+// TIMELINE
+
+app.get(API_PATH + '/timeline/events', (req, res) => {
+  db.query('SELECT * FROM timeline_events', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    const events = result.map(event => ({
+      start: event.start ? moment(event.start).format("MMM DD YYYY") : null,
+      end: event.end ? moment(event.end).format("MMM DD YYYY") : null,
+      latestStart: event.latestStart ? moment(event.latestStart).format("MMM DD YYYY") : null,
+      earliestEnd: event.earliestEnd ? moment(event.earliestEnd).format("MMM DD YYYY") : null,
+      title: event.title,
+      classname: event.classname,
+      description: event.description_de,
+      durationEvent: event.durationEvent,
+      link: event.link,
+      updated_at: event.updated_at
+    }));
+
+    res.json({
+      dateTimeFormat: "Gregorian",
+      events: events
+    });
+  });
+});
 
 // USERS
 app.post(API_PATH + '/register', (req, res) => {
@@ -603,6 +689,7 @@ const emailVerificationRouter = require('./emailVerification'); // Adjust the pa
 app.use(API_PATH, emailVerificationRouter);
 
 const trainerRoutes = require('./regnumTrainer'); // Adjust the path as necessary
+const { time } = require('console');
 app.use(API_PATH, trainerRoutes);
 
 // get all regnum resources
