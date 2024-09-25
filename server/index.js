@@ -154,39 +154,6 @@ db.query(`CREATE TABLE IF NOT EXISTS timeline_events (
   logger.info('Table timeline_events created or updated');
 });
 
-// // Load initial data into timeline_events table from a JSON file
-// const timelineEventsPath = path.join(__dirname, '../public/data/timeline/scripts/timeline/regnum.json');
-// const timelineEventsData = fs.readFileSync(timelineEventsPath, 'utf8');
-// const timelineEvents = JSON.parse(timelineEventsData).events;
-// 
-// const moment = require('moment');
-// 
-// (async () => {
-//   for (let i = 0; i < timelineEvents.length; i++) {
-//     const event = timelineEvents[i];
-//     const formattedStart = moment(event.start, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss");
-//     const formattedEnd = event.end ? moment(event.end, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
-//     const formattedEarliestEnd = event.earliestEnd ? moment(event.earliestEnd, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
-//     const formattedLatestStart = event.latestStart ? moment(event.latestStart, "MMM DD YYYY").format("YYYY-MM-DD HH:mm:ss") : null;
-// 
-//     try {
-//       await new Promise((resolve, reject) => {
-//         db.query('INSERT INTO timeline_events (title, description_de, start, end, earliestEnd, classname, durationEvent, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [event.title, event.description, formattedStart, formattedEnd, formattedEarliestEnd, event.classname, event.durationEvent, event.link], (err) => {
-//           if (err) {
-//             logger.error('Error inserting timeline_events into database:', err);
-//             return reject(err);
-//           }
-//           resolve();
-//         });
-//       });
-//       console.log(`Inserted event ${i + 1} of ${timelineEvents.length}`);
-//     } catch (err) {
-//       console.error(`Failed to insert event ${i + 1} of ${timelineEvents.length}`);
-//     }
-//   }
-//   console.log('All events have been processed');
-// })();
-
 // E-Mails
 
 const nodemailer = require('nodemailer');
