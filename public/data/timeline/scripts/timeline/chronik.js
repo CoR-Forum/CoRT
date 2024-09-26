@@ -134,6 +134,11 @@ Timeline.GregorianDateLabeller.prototype.labelPrecise = function(date) {
             });
 }
 
+function sendEditRequestToParent(id) {
+    window.parent.postMessage(id);
+    console.log("Sent edit request for event with id " + id);
+}
+
 // focus band on year
 var day = new Date().getDay();
 var month = new Date().getMonth();
@@ -188,6 +193,17 @@ Timeline.DefaultEventSource.Event.prototype.fillInfoBubble = function (elmt, the
         this.fillWikiInfo(divWiki);
         theme.event.bubble.wikiStyler(divWiki);
         elmt.appendChild(divWiki);
+
+        // button to call sendEditRequestToParant() with event id
+        var divEdit = doc.createElement("div");
+        var editButton = doc.createElement("button");
+        editButton.innerHTML = "Edit";
+        editButton.getID = this.getID().replace('e', '');
+        editButton.onclick = function() {
+            sendEditRequestToParent(this.getID);
+        };
+        divEdit.appendChild(editButton);
+        elmt.appendChild(divEdit);
 };
 
 

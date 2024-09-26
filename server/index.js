@@ -145,13 +145,38 @@ db.query(`CREATE TABLE IF NOT EXISTS timeline_events (
   durationEvent BOOLEAN DEFAULT FALSE,
   link TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  created_by INT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_by INT
 )`, (err, result) => {
   if (err) {
     logger.error('Error creating timeline_events table:', err);
     throw err;
   }
   logger.info('Table timeline_events created or updated');
+});
+
+// timeline editor log; saves a copy of a timeline event before it is updated
+db.query(`CREATE TABLE IF NOT EXISTS timeline_editor_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  event_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description_de TEXT,
+  start TIMESTAMP NOT NULL,
+  end TIMESTAMP,
+  latestStart TIMESTAMP,
+  earliestEnd TIMESTAMP,
+  classname VARCHAR(255),
+  durationEvent BOOLEAN DEFAULT FALSE,
+  link TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by INT
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating timeline_editor_log table:', err);
+    throw err;
+  }
+  logger.info('Table timeline_editor_log created or updated');
 });
 
 // E-Mails
@@ -282,35 +307,6 @@ const emailDoesNotMeetRequirements = 'Invalid email address.';
 
 const marketRoutes = require('./market');
 app.use(API_PATH, marketRoutes);
-
-// TIMELINE
-
-app.get(API_PATH + '/timeline/events', (req, res) => {
-  db.query('SELECT * FROM timeline_events', (err, result) => {
-    if (err) {
-      logger.error('Error querying database: ' + err);
-      return res.status(500).send('Internal Server Error');
-    }
-
-    const events = result.map(event => ({
-      start: event.start ? moment(event.start).format("MMM DD YYYY") : null,
-      end: event.end ? moment(event.end).format("MMM DD YYYY") : null,
-      latestStart: event.latestStart ? moment(event.latestStart).format("MMM DD YYYY") : null,
-      earliestEnd: event.earliestEnd ? moment(event.earliestEnd).format("MMM DD YYYY") : null,
-      title: event.title,
-      classname: event.classname,
-      description: event.description_de,
-      durationEvent: event.durationEvent,
-      link: event.link,
-      updated_at: event.updated_at
-    }));
-
-    res.json({
-      dateTimeFormat: "Gregorian",
-      events: events
-    });
-  });
-});
 
 // USERS
 app.post(API_PATH + '/register', (req, res) => {
@@ -761,6 +757,114 @@ app.post(API_PATH + '/regnum/resources/favorite/:res_id', checkAuth, (req, res) 
     }
   });
 });
+
+// TIMELINE
+
+const moment = require('moment');
+
+app.get(API_PATH + '/timeline/events', (req, res) => {
+  db.query('SELECT * FROM timeline_events', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    const events = result.map(event => ({
+      start: event.start ? moment(event.start).format("MMM DD YYYY") : null,
+      end: event.end ? moment(event.end).format("MMM DD YYYY") : null,
+      latestStart: event.latestStart ? moment(event.latestStart).format("MMM DD YYYY") : null,
+      earliestEnd: event.earliestEnd ? moment(event.earliestEnd).format("MMM DD YYYY") : null,
+      title: event.title,
+      classname: event.classname,
+      description: event.description_de,
+      durationEvent: event.durationEvent,
+      link: event.link,
+      updated_at: event.updated_at
+    }));
+
+    res.json({
+      dateTimeFormat: "Gregorian",
+      events: events
+    });
+  });
+});
+
+// get timeline event by id
+app.get(API_PATH + '/timeline/events/:event_id', (req, res) => {
+  const event_id = req.params.event_id;
+  db.query('SELECT * FROM timeline_events WHERE id = ?', [event_id], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    const event = result[0];
+    res.json({
+      id: event.id,
+      start: event.start ? moment(event.start).format("MMM DD YYYY") : null,
+      end: event.end ? moment(event.end).format("MMM DD YYYY") : null,
+      latestStart: event.latestStart ? moment(event.latestStart).format("MMM DD YYYY") : null,
+      earliestEnd: event.earliestEnd ? moment(event.earliestEnd).format("MMM DD YYYY") : null,
+      title: event.title,
+      classname: event.classname,
+      description: event.description_de,
+      durationEvent: event.durationEvent,
+      link: event.link,
+      updated_at: event.updated_at
+    });
+  });
+});
+
+// users can edit timeline events, edits will be logged in timeline_editor_log
+app.put(API_PATH + '/timeline/events/:event_id', checkAuth, (req, res) => {
+  const event_id = req.params.event_id;
+  const title = req.body.title;
+  const description = req.body.description;
+  const rawStart = req.body.start;
+  console.log(rawStart);
+  const rawEnd = req.body.end;
+  console.log(rawEnd);
+  const rawLatestStart = req.body.latestStart;
+  const rawEarliestEnd = req.body.earliestEnd;
+  const classname = req.body.classname;
+  const durationEvent = req.body.durationEvent;
+  const link = req.body.link;
+
+  const start = rawStart ? moment(rawStart, "MMM DD YYYY").format("YYYY-MM-DD") : null;
+  console.log(start);
+  const end = rawEnd ? moment(rawEnd, "MMM DD YYYY").format("YYYY-MM-DD") : null;
+  console.log(end);
+  const latestStart = rawLatestStart ? moment(rawLatestStart, "MMM DD YYYY").format("YYYY-MM-DD") : null;
+  const earliestEnd = rawEarliestEnd ? moment(rawEarliestEnd, "MMM DD YYYY").format("YYYY-MM-DD") : null;
+
+  const updated_at = new Date();
+  logger.info('Updating timeline event ID ' + event_id + ' with new title ' + title + ' and description ' + description + ' and start ' + start + ' and end ' + end + ' and latestStart ' + latestStart + ' and earliestEnd ' + earliestEnd + ' and classname ' + classname + ' and durationEvent ' + durationEvent + ' and link ' + link);
+
+  db.query('SELECT * FROM timeline_events WHERE id = ?', [event_id], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    const event = result[0];
+    db.query('INSERT INTO timeline_editor_log (event_id, title, description_de, start, end, latestStart, earliestEnd, classname, durationEvent, link, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [event_id, event.title, event.description_de, event.start, event.end, event.latestStart, event.earliestEnd, event.classname, event.durationEvent, event.link, event.created_at, req.session.userId], (err, result) => {
+      if (err) {
+        logger.error('Error inserting timeline_editor_log into database: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      db.query('UPDATE timeline_events SET title = ?, description_de = ?, start = ?, end = ?, latestStart = ?, earliestEnd = ?, classname = ?, durationEvent = ?, link = ?, updated_at = ?, updated_by = ? WHERE id = ?', [title, description, start, end, latestStart, earliestEnd, classname, durationEvent, link, updated_at, req.session.userId, event_id], (err, result) => {
+        if (err) {
+          logger.error('Error updating timeline event in database: ' + err);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+        res.json({ status: 'success', message: 'Timeline event updated' });
+      });
+    });
+  });
+});
+
+
 
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup

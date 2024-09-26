@@ -41,6 +41,28 @@
 					iframeContainer.style.display = 'block';
 				});
 			});
+
+			// Listen for messages from the iframe
+			window.addEventListener('message', function(event) {
+				console.log('Requested edit of event:', event.data);
+				// get the event data from /api/v1/events/:id and open the edit modal
+				fetch('/api/v1/timeline/events/' + event.data)
+					.then(response => response.json())
+					.then(data => {
+						console.log('Event data:', data);
+						document.getElementById('edit-modal-title').value = data.title;
+						document.getElementById('edit-modal-description').innerText = data.description;
+						const startDate = new Date(data.start);
+						const formattedStartDate = startDate.toISOString().split('T')[0];
+						document.getElementById('edit-modal-start').value = formattedStartDate;
+						const endDate = new Date(data.end);
+						const formattedEndDate = endDate.toISOString().split('T')[0];
+						document.getElementById('edit-modal-end').value = formattedEndDate;
+						document.getElementById('edit-modal-id').innerText = data.id;
+						document.getElementById('edit-modal').style.display = 'block';
+					});
+				
+			});
 		</script>
 	</head>
 	<body>
@@ -62,7 +84,60 @@
 					<iframe id="iframe" style="width:100%;height:800px;border:none;padding-top:1em" scrolling="yes" src="data/timeline/index.html"></iframe>
 				</div>
 			</div>
-		</div>
+			<!-- edit modal with form -->
+			<div id="edit-modal" class="modal">
+				<div class="card" style="max-width:70%;margin: 0 auto">
+					<div class="modal-content">
+						<span class="close">&times;</span>
+						<form style="display: flex; flex-direction: column; gap: 1em;">
+							<input type="hidden" id="edit-modal-id" name="id">
+							<label for="edit-modal-title">Title:</label>
+							<input type="text" id="edit-modal-title" name="title" required>
+							<label for="edit-modal-description">Description:</label>
+							<textarea id="edit-modal-description" name="description" required></textarea>
+							<label for="edit-modal-start">Start:</label>
+							<input type="date" id="edit-modal-start" name="start" required>
+							<label for="edit-modal-end">End:</label>
+							<input type="date" id="edit-modal-end" name="end" required>
+							<button type="submit">Save</button>
+						</form>
+						<script>
+							// submit the form to update the event
+							document.querySelector('#edit-modal form').addEventListener('submit', function(event) {
+								event.preventDefault();
+								const id = document.getElementById('edit-modal-id').innerText;
+								const title = document.getElementById('edit-modal-title').value;
+								const description = document.getElementById('edit-modal-description').value;
+								const start = document.getElementById('edit-modal-start').value;
+								const end = document.getElementById('edit-modal-end').value;
+								const data = {
+									title,
+									description,
+									start,
+									end
+								};
+								console.log('Updating event:', data);
+								fetch('/api/v1/timeline/events/' + id, {
+									method: 'PUT',
+									headers: {
+										'Content-Type': 'application/json'
+									},
+									body: JSON.stringify(data)
+								})
+									.then(response => response.json())
+									.then(data => {
+										console.log('Success:', data);
+										document.getElementById('edit-modal').style.display = 'none';
+										document.getElementById('iframe').contentWindow.location.reload();
+									})
+									.catch((error) => {
+										console.error('Error:', error);
+									});
+							});
+						</script>
+					</div>
+				</div>
+			</div>
 		<div id="footer" class="card">
 			<div id="footer-menu"></div>
 			<!-- Matomo -->
