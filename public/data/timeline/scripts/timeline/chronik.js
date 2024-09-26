@@ -128,7 +128,7 @@ Timeline.GregorianDateLabeller.prototype.labelPrecise = function(date) {
 	
   // data sources
   tl = Timeline.create(document.getElementById("regnumtl"), bandInfos, Timeline.HORIZONTAL);
-  tl.loadJSON("/api/v1/timeline/events?"+ (new Date().getTime()), function(json, url) {
+  tl.loadJSON("./scripts/timeline/regnum.json?"+ (new Date().getTime()), function(json, url) {
                 eventSource.loadJSON(json, url);
 				document.getElementById("regnum-event-count").innerHTML = eventSource.getCount();
             });
