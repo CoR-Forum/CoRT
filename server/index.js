@@ -59,6 +59,43 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
   logger.info('Table users created or updated');
 });
 
+// sylentx licenses
+db.query(`CREATE TABLE IF NOT EXISTS sylentx_licenses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  license_key VARCHAR(255) NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP DEFAULT NULL,
+  active BOOLEAN DEFAULT TRUE,
+  feature_flyhack BOOLEAN DEFAULT FALSE,
+  feature_speedhack BOOLEAN DEFAULT FALSE,
+  feature_freecam BOOLEAN DEFAULT FALSE,
+  feature_noclip BOOLEAN DEFAULT FALSE
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating sylentx_licenses table:', err);
+    throw err;
+  }
+  logger.info('Table sylentx_licenses created or updated');
+});
+
+// Create table for memory pointers
+db.query(`CREATE TABLE IF NOT EXISTS memory_pointers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  offsets VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating memory_pointers table:', err);
+    throw err;
+  }
+  logger.info('Table memory_pointers created or updated');
+});
+
 // characters
 db.query(`CREATE TABLE IF NOT EXISTS characters (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -761,6 +798,54 @@ app.post(API_PATH + '/regnum/resources/favorite/:res_id', checkAuth, (req, res) 
     }
   });
 });
+
+// API for sylentx
+
+// get license of current user
+app.get(API_PATH + '/sylentx/license', checkAuth, (req, res) => {
+  db.query('SELECT * FROM sylentx_licenses WHERE user_id = ?', [req.session.userId], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    if (result.length === 0) {
+      return res.status(200).json({ message: 'unlicensed' });
+    }
+    res.send(result[0]);
+  });
+});
+
+// get sylentx memory pointers
+app.get(API_PATH + '/sylentx/memory/pointers', (req, res) => {
+  db.query('SELECT * FROM memory_pointers', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    res.send(result);
+  });
+});
+
+// function that checks sylentx license expiration and updates the active status every 60 seconds
+function checkSylentxLicense() {
+  db.query('SELECT * FROM sylentx_licenses WHERE expires_at < NOW()', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return;
+    }
+    for (const license of result) {
+      db.query('UPDATE sylentx_licenses SET active = FALSE WHERE id = ?', [license.id], (err) => {
+        if (err) {
+          logger.error('Error updating license in database: ' + err);
+          return;
+        }
+      });
+    }
+  });
+}
+
+// check sylentx license expiration every 60 seconds
+setInterval(checkSylentxLicense, 60000);
 
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup
