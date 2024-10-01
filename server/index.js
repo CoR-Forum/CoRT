@@ -23,6 +23,7 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
 const SESSION_SECRET = process.env.SESSION_SECRET;
+const SYLENTX_API_SECRET = process.env.SYLENTX_API_SECRET;
 
 // MySQL Database
 const db = require('./dbInit'); // Adjust the path as necessary
@@ -817,6 +818,14 @@ app.get(API_PATH + '/sylentx/license', checkAuth, (req, res) => {
 
 // get sylentx memory pointers
 app.get(API_PATH + '/sylentx/memory/pointers', (req, res) => {
+  const { key } = req.query;
+  const sylentx_api_secret = key;
+
+  if (!sylentx_api_secret || sylentx_api_secret !== process.env.SYLENTX_API_SECRET) {
+    logger.error('Invalid or missing sylentx_api_secret');
+    return res.status(401).send('Unauthorized');
+  }
+
   db.query('SELECT * FROM memory_pointers', (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
