@@ -69,8 +69,8 @@ db.query(`CREATE TABLE IF NOT EXISTS sylentx_licenses (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   expires_at TIMESTAMP DEFAULT NULL,
   active BOOLEAN DEFAULT TRUE,
-  feature_flyhack BOOLEAN DEFAULT FALSE,
-  feature_speedhack BOOLEAN DEFAULT FALSE,
+  feature_zoom BOOLEAN DEFAULT FALSE,
+  feature_gravity BOOLEAN DEFAULT FALSE,
   feature_freecam BOOLEAN DEFAULT FALSE,
   feature_noclip BOOLEAN DEFAULT FALSE
 )`, (err, result) => {
@@ -423,6 +423,11 @@ app.post(API_PATH + '/login', (req, res) => {
   const password = req.body.password || req.query.password;
   logger.info('Logging in user: ' + login, password);
 
+  if (!login) {
+    res.status(400).json({ status: 'error', message: 'Login is required' });
+    return;
+  }
+
   const isEmail = login.includes('@');
   const query = isEmail ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE username = ?';
   db.query(query, [login], (err, result) => {
@@ -457,30 +462,43 @@ app.post(API_PATH + '/login', (req, res) => {
         req.session.userId = user.id;
         req.session.username = user.username;
         const last_login = new Date();
-        const last_ip = req.connection.remoteAddress;
-        db.query('UPDATE users SET last_login = ?, last_ip = ? WHERE id = ?', [last_login, last_ip, user.id], (err, result) => {
+        const last_ip = req.socket.remoteAddress;
+        db.query('UPDATE users SET last_login = ?, last_ip = ? WHERE id = ?', [last_login, last_ip, user.id], (err) => {
           if (err) {
             logger.error('Error updating last_login and last_ip: ' + err);
             res.status(500).send('Internal Server Error');
             return;
           }
           logger.info('User logged in: ' + user.email, user.username, user.nickname, user.role);
-          res.json({ 
-            status: 'success', 
-            message: 'User logged in', 
-            user: { 
-              id: user.id, 
-              email: user.email, 
-              username: user.username, 
-              nickname: user.nickname, 
-              role: user.role 
-            },
-            sessionId: req.sessionID
-          });
 
-          var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-          var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-          sendEmail(user.id, 'CoRT Login Notification', text, html);
+          // Check for sylentx license
+          db.query('SELECT * FROM sylentx_licenses WHERE user_id = ? AND active = TRUE', [user.id], (err, licenses) => {
+            if (err) {
+              logger.error('Error querying sylentx_licenses: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+
+            const sylentxLicense = licenses.length > 0 ? licenses[0] : null;
+
+            res.json({ 
+              status: 'success', 
+              message: 'User logged in', 
+              user: { 
+                id: user.id, 
+                email: user.email, 
+                username: user.username, 
+                nickname: user.nickname, 
+                role: user.role,
+                sylentxLicense: sylentxLicense || ""
+              },
+              sessionId: req.sessionID
+            });
+
+            var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+            var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+            sendEmail(user.id, 'CoRT Login Notification', text, html);
+          });
         });
         return; 
       }
@@ -848,26 +866,30 @@ app.get(API_PATH + '/sylentx/memory/pointers', (req, res) => {
   });
 });
 
-// function that checks sylentx license expiration and updates the active status every 60 seconds
+// function that checks sylentx license expiration and updates the active status only if required
 function checkSylentxLicense() {
-  db.query('SELECT * FROM sylentx_licenses WHERE expires_at < NOW()', (err, result) => {
+  db.query('SELECT * FROM sylentx_licenses', (err, result) => {
     if (err) {
       logger.error('Error querying database: ' + err);
       return;
     }
+    const now = new Date();
     for (const license of result) {
-      db.query('UPDATE sylentx_licenses SET active = FALSE WHERE id = ?', [license.id], (err) => {
-        if (err) {
-          logger.error('Error updating license in database: ' + err);
-          return;
-        }
-      });
+      const isActive = new Date(license.expires_at) > now;
+      if (license.active !== isActive) {
+        db.query('UPDATE sylentx_licenses SET active = ? WHERE id = ?', [isActive, license.id], (err) => {
+          if (err) {
+            logger.error('Error updating license in database: ' + err);
+            return;
+          }
+        });
+      }
     }
   });
 }
 
 // check sylentx license expiration every 60 seconds
-setInterval(checkSylentxLicense, 60000);
+setInterval(checkSylentxLicense, 5000);
 
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup
