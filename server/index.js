@@ -23,6 +23,7 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
 const SESSION_SECRET = process.env.SESSION_SECRET;
+const SYLENTX_API_SECRET = process.env.SYLENTX_API_SECRET;
 
 // MySQL Database
 const db = require('./dbInit'); // Adjust the path as necessary
@@ -57,6 +58,43 @@ db.query(`CREATE TABLE IF NOT EXISTS users (
     throw err;
   }
   logger.info('Table users created or updated');
+});
+
+// sylentx licenses
+db.query(`CREATE TABLE IF NOT EXISTS sylentx_licenses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  license_key VARCHAR(255) NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP DEFAULT NULL,
+  active BOOLEAN DEFAULT TRUE,
+  feature_flyhack BOOLEAN DEFAULT FALSE,
+  feature_speedhack BOOLEAN DEFAULT FALSE,
+  feature_freecam BOOLEAN DEFAULT FALSE,
+  feature_noclip BOOLEAN DEFAULT FALSE
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating sylentx_licenses table:', err);
+    throw err;
+  }
+  logger.info('Table sylentx_licenses created or updated');
+});
+
+// Create table for memory pointers
+db.query(`CREATE TABLE IF NOT EXISTS memory_pointers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  offsets VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating memory_pointers table:', err);
+    throw err;
+  }
+  logger.info('Table memory_pointers created or updated');
 });
 
 // characters
@@ -377,10 +415,12 @@ app.post(API_PATH + '/register', (req, res) => {
 // Example curl request:
 // curl -X POST -H "Content-Type: application/json" -d '{"email":"example@example.com","password":"password123","username":"example","nickname":"John"}' http://localhost:8080/api/v1/register
 
+
 // login - login with email and password
 // user can login with email or username and password. check if user is using email or username and query database accordingly
 app.post(API_PATH + '/login', (req, res) => {
-  const { login, password } = req.body;
+  const login = req.body.login || req.query.login;
+  const password = req.body.password || req.query.password;
   logger.info('Logging in user: ' + login, password);
 
   const isEmail = login.includes('@');
@@ -425,7 +465,18 @@ app.post(API_PATH + '/login', (req, res) => {
             return;
           }
           logger.info('User logged in: ' + user.email, user.username, user.nickname, user.role);
-          res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
+          res.json({ 
+            status: 'success', 
+            message: 'User logged in', 
+            user: { 
+              id: user.id, 
+              email: user.email, 
+              username: user.username, 
+              nickname: user.nickname, 
+              role: user.role 
+            },
+            sessionId: req.sessionID
+          });
 
           var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
           var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
@@ -761,6 +812,62 @@ app.post(API_PATH + '/regnum/resources/favorite/:res_id', checkAuth, (req, res) 
     }
   });
 });
+
+// API for sylentx
+
+// get license of current user
+app.get(API_PATH + '/sylentx/license', checkAuth, (req, res) => {
+  db.query('SELECT * FROM sylentx_licenses WHERE user_id = ?', [req.session.userId], (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    if (result.length === 0) {
+      return res.status(200).json({ message: 'unlicensed' });
+    }
+    res.send(result[0]);
+  });
+});
+
+// get sylentx memory pointers
+app.get(API_PATH + '/sylentx/memory/pointers', (req, res) => {
+  const { key } = req.query;
+  const sylentx_api_secret = key;
+
+  if (!sylentx_api_secret || sylentx_api_secret !== process.env.SYLENTX_API_SECRET) {
+    logger.error('Invalid or missing sylentx_api_secret');
+    return res.status(401).send('Unauthorized');
+  }
+
+  db.query('SELECT * FROM memory_pointers', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return res.status(500).send('Internal Server Error');
+    }
+    res.send(result);
+  });
+});
+
+// function that checks sylentx license expiration and updates the active status every 60 seconds
+function checkSylentxLicense() {
+  db.query('SELECT * FROM sylentx_licenses WHERE expires_at < NOW()', (err, result) => {
+    if (err) {
+      logger.error('Error querying database: ' + err);
+      return;
+    }
+    for (const license of result) {
+      db.query('UPDATE sylentx_licenses SET active = FALSE WHERE id = ?', [license.id], (err) => {
+        if (err) {
+          logger.error('Error updating license in database: ' + err);
+          return;
+        }
+      });
+    }
+  });
+}
+
+// check sylentx license expiration every 60 seconds
+setInterval(checkSylentxLicense, 60000);
 
 if (process.env.NODE_ENV === 'production') {
   // run "python3 warstatus/warstatus.py" every minute and once on startup

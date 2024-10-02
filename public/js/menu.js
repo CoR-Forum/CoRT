@@ -260,6 +260,14 @@ $(document).ready(function() {
 		$("#login-form").css("display", "block");
 	}
 
+	if (window.location.hash == "#register") {
+		$("#registration-form").css("display", "block");
+	}
+
+	if (window.location.hash == "#passwordreset") {
+		$("#password-reset-init-form").css("display", "block");
+	}
+
 	// event listener for the close button in the login form
 	$("#closeLoginModal").on("click", function() {
 		$("#login-form").css("display", "none");
