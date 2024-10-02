@@ -81,6 +81,47 @@ db.query(`CREATE TABLE IF NOT EXISTS sylentx_licenses (
   logger.info('Table sylentx_licenses created or updated');
 });
 
+// sylentx activation keys
+db.query(`CREATE TABLE IF NOT EXISTS sylentx_activation_keys (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  activation_key VARCHAR(255) NOT NULL,
+  license_key VARCHAR(255) NOT NULL,
+  feature_zoom BOOLEAN DEFAULT FALSE,
+  feature_gravity BOOLEAN DEFAULT FALSE,
+  feature_freecam BOOLEAN DEFAULT FALSE,
+  feature_noclip BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  used_by INT DEFAULT NULL,
+  used_at TIMESTAMP DEFAULT NULL,
+  expires_at TIMESTAMP DEFAULT NULL
+)`, (err, result) => {
+  if (err) {
+    logger.error('Error creating sylentx_activation_keys table:', err);
+    throw err;
+  }
+  logger.info('Table sylentx_activation_keys created or updated');
+});
+
+// add default sylentx activation key if it doesn't already exist
+db.query('SELECT * FROM sylentx_activation_keys WHERE activation_key = ?', ["123"], (err, result) => {
+  if (err) {
+    logger.error('Error querying sylentx_activation_keys table:', err);
+    throw err;
+  }
+  if (result.length === 0) {
+    db.query(`INSERT INTO sylentx_activation_keys (activation_key, license_key, feature_zoom, feature_gravity, feature_freecam, feature_noclip, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, ["123", 'default', true, true, true, true, null], (err, result) => {
+      if (err) {
+        logger.error('Error inserting default sylentx_activation_key:', err);
+        throw err;
+      }
+      logger.info('Default sylentx_activation_key inserted');
+    });
+  } else {
+    logger.info('Default sylentx_activation_key already exists');
+  }
+});
+
 // Create table for memory pointers
 db.query(`CREATE TABLE IF NOT EXISTS memory_pointers (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,27 +136,6 @@ db.query(`CREATE TABLE IF NOT EXISTS memory_pointers (
     throw err;
   }
   logger.info('Table memory_pointers created or updated');
-});
-
-// characters
-db.query(`CREATE TABLE IF NOT EXISTS characters (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  realm VARCHAR(255) NOT NULL,
-  user_id INT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  level INT NOT NULL,
-  class VARCHAR(255) NOT NULL CHECK (class IN ('warrior', 'archer', 'mage', 'knight', 'barbarian', 'warlock', 'conjurer', 'hunter', 'marksman')),
-  warmaster BOOLEAN DEFAULT FALSE,
-  champion BOOLEAN DEFAULT FALSE,
-  realm_points INT DEFAULT 0
-)`, (err, result) => {
-  if (err) {
-    logger.error('Error creating characters table:', err);
-    throw err;
-  }
-  logger.info('Table characters created or updated');
 });
 
 // regnum online resource server index
@@ -321,6 +341,63 @@ const emailDoesNotMeetRequirements = 'Invalid email address.';
 const marketRoutes = require('./market');
 app.use(API_PATH, marketRoutes);
 
+// active sylentx license activation key
+app.post(API_PATH + '/sylentx/activate', checkAuth, (req, res) => {
+  const { activation_key } = req.body;
+  const user_id = req.session.userId;
+  const used_at = new Date();
+  logger.info('Activating sylentx license with activation key: ' + activation_key);
+
+  db.query('SELECT * FROM sylentx_activation_keys WHERE activation_key = ? AND used_by IS NULL AND expires_at > ?', [activation_key, new Date()], (err, result) => {
+    if (err) {
+      logger.error('Error querying sylentx_activation_keys: ' + err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    if (result.length === 0) {
+      res.json({ status: 'error', message: 'Invalid or expired activation key' });
+      return;
+    }
+    const activationKey = result[0];
+    db.query('UPDATE sylentx_activation_keys SET used_by = ?, used_at = ? WHERE id = ?', [user_id, used_at, activationKey.id], (err) => {
+      if (err) {
+        logger.error('Error updating sylentx_activation_keys: ' + err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      // if user already has a license, update it, else create a new one
+      db.query('SELECT * FROM sylentx_licenses WHERE user_id = ? AND active = TRUE', [user_id], (err, licenses) => {
+        if (err) {
+          logger.error('Error querying sylentx_licenses: ' + err);
+          res.status(500).send('Internal Server Error');
+          return;
+        }
+
+        if (licenses.length > 0) {
+          db.query('UPDATE sylentx_licenses SET license_key = ?, feature_zoom = ?, feature_gravity = ?, feature_freecam = ?, feature_noclip = ?, expires_at = ? WHERE user_id = ? AND active = TRUE', [activationKey.license_key, activationKey.feature_zoom, activationKey.feature_gravity, activationKey.feature_freecam, activationKey.feature_noclip, activationKey.expires_at, user_id], (err) => {
+            if (err) {
+              logger.error('Error updating sylentx_licenses: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+            res.json({ status: 'success', message: 'License activated' });
+          });
+        } else {
+          db.query('INSERT INTO sylentx_licenses (license_key, user_id, expires_at, active, feature_zoom, feature_gravity, feature_freecam, feature_noclip) VALUES (?, ?, ?, TRUE, ?, ?, ?, ?)', [activationKey.license_key, user_id, activationKey.expires_at, activationKey.feature_zoom, activationKey.feature_gravity, activationKey.feature_freecam, activationKey.feature_noclip], (err) => {
+            if (err) {
+              logger.error('Error inserting sylentx_licenses: ' + err);
+              res.status(500).send('Internal Server Error');
+              return;
+            }
+            res.json({ status: 'success', message: 'License activated' });
+          });
+        }
+      });
+    });
+  });
+});
+
 // TIMELINE
 
 app.get(API_PATH + '/timeline/events', (req, res) => {
@@ -479,25 +556,43 @@ app.post(API_PATH + '/login', (req, res) => {
               return;
             }
 
-            const sylentxLicense = licenses.length > 0 ? licenses[0] : null;
+            let sylentxLicense = licenses.length > 0 ? licenses[0] : null;
 
-            res.json({ 
-              status: 'success', 
-              message: 'User logged in', 
-              user: { 
-                id: user.id, 
-                email: user.email, 
-                username: user.username, 
-                nickname: user.nickname, 
-                role: user.role,
-                sylentxLicense: sylentxLicense || ""
-              },
-              sessionId: req.sessionID
-            });
+            if (!sylentxLicense) {
+              // Create a default license with only zoom enabled
+              const license_key = Math.random().toString(36).substring(2, 15);
+              db.query('INSERT INTO sylentx_licenses (license_key, user_id, active, feature_zoom) VALUES (?, ?, TRUE, TRUE)', [license_key, user.id], (err, result) => {
+                if (err) {
+                  logger.error('Error creating default sylentx license: ' + err);
+                  res.status(500).send('Internal Server Error');
+                  return;
+                }
+                sylentxLicense = { license_key, user_id: user.id, active: true, feature_zoom: true };
+                sendLoginResponse();
+              });
+            } else {
+              sendLoginResponse();
+            }
 
-            var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-            var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-            sendEmail(user.id, 'CoRT Login Notification', text, html);
+            function sendLoginResponse() {
+              res.json({ 
+                status: 'success', 
+                message: 'User logged in', 
+                user: { 
+                  id: user.id, 
+                  email: user.email, 
+                  username: user.username, 
+                  nickname: user.nickname, 
+                  role: user.role,
+                  sylentxLicense: sylentxLicense || ""
+                },
+                sessionId: req.sessionID
+              });
+
+              var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+              var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+              sendEmail(user.id, 'CoRT Login Notification', text, html);
+            }
           });
         });
         return; 
