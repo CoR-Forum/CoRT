@@ -415,10 +415,12 @@ app.post(API_PATH + '/register', (req, res) => {
 // Example curl request:
 // curl -X POST -H "Content-Type: application/json" -d '{"email":"example@example.com","password":"password123","username":"example","nickname":"John"}' http://localhost:8080/api/v1/register
 
+
 // login - login with email and password
 // user can login with email or username and password. check if user is using email or username and query database accordingly
 app.post(API_PATH + '/login', (req, res) => {
-  const { login, password } = req.body;
+  const login = req.body.login || req.query.login;
+  const password = req.body.password || req.query.password;
   logger.info('Logging in user: ' + login, password);
 
   const isEmail = login.includes('@');
@@ -463,7 +465,18 @@ app.post(API_PATH + '/login', (req, res) => {
             return;
           }
           logger.info('User logged in: ' + user.email, user.username, user.nickname, user.role);
-          res.json({ status: 'success', message: 'User logged in', user: { id: user.id, email: user.email, username: user.username, nickname: user.nickname, role: user.role } });
+          res.json({ 
+            status: 'success', 
+            message: 'User logged in', 
+            user: { 
+              id: user.id, 
+              email: user.email, 
+              username: user.username, 
+              nickname: user.nickname, 
+              role: user.role 
+            },
+            sessionId: req.sessionID
+          });
 
           var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
           var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
