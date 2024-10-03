@@ -556,29 +556,32 @@ app.post(API_PATH + '/login', (req, res) => {
               return;
             }
 
-            let sylentxLicense = licenses.length > 0 ? licenses[0] : null;
+            const sylentxLicense = licenses.length > 0 ? licenses[0] : null;
 
-            sendLoginResponse();
+            res.json({ 
+              status: 'success', 
+              message: 'User logged in', 
+              user: { 
+              id: user.id, 
+              email: user.email, 
+              username: user.username, 
+              nickname: user.nickname, 
+              role: user.role,
+              sylentxLicense: sylentxLicense || {
+                license_key: "trial",
+                active: 1,
+                feature_zoom: 1,
+                feature_gravity: 0,
+                feature_freecam: 0,
+                feature_noclip: 0
+              }
+              },
+              sessionId: req.sessionID
+            });
 
-            function sendLoginResponse() {
-              res.json({ 
-                status: 'success', 
-                message: 'User logged in', 
-                user: { 
-                  id: user.id, 
-                  email: user.email, 
-                  username: user.username, 
-                  nickname: user.nickname, 
-                  role: user.role,
-                  sylentxLicense: sylentxLicense || ""
-                },
-                sessionId: req.sessionID
-              });
-
-              var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-              var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
-              sendEmail(user.id, 'CoRT Login Notification', text, html);
-            }
+            var text = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+            var html = emailTemplates.loginNotification(user.nickname, user.username, last_login, last_ip) + emailTemplates.footer;
+            sendEmail(user.id, 'CoRT Login Notification', text, html);
           });
         });
         return; 
