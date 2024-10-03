@@ -375,7 +375,7 @@ app.post(API_PATH + '/sylentx/activate', checkAuth, (req, res) => {
         }
 
         if (licenses.length > 0) {
-          db.query('UPDATE sylentx_licenses SET license_key = ?, feature_zoom = ?, feature_gravity = ?, feature_freecam = ?, feature_noclip = ?, expires_at = ? WHERE user_id = ? AND active = TRUE', [activationKey.license_key, activationKey.feature_zoom, activationKey.feature_gravity, activationKey.feature_freecam, activationKey.feature_noclip, activationKey.expires_at, user_id], (err) => {
+          db.query('UPDATE sylentx_licenses SET license_key = ?, feature_zoom = ?, feature_gravity = ?, feature_freecam = ?, feature_noclip = ?, expires_at = ?, active = TRUE WHERE user_id = ? AND active = TRUE', [activationKey.license_key, activationKey.feature_zoom, activationKey.feature_gravity, activationKey.feature_freecam, activationKey.feature_noclip, activationKey.expires_at, user_id], (err) => {
             if (err) {
               logger.error('Error updating sylentx_licenses: ' + err);
               res.status(500).send('Internal Server Error');
