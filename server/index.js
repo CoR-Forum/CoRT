@@ -558,21 +558,7 @@ app.post(API_PATH + '/login', (req, res) => {
 
             let sylentxLicense = licenses.length > 0 ? licenses[0] : null;
 
-            if (!sylentxLicense) {
-              // Create a default license with only zoom enabled
-              const license_key = Math.random().toString(36).substring(2, 15);
-              db.query('INSERT INTO sylentx_licenses (license_key, user_id, active, feature_zoom) VALUES (?, ?, TRUE, TRUE)', [license_key, user.id], (err, result) => {
-                if (err) {
-                  logger.error('Error creating default sylentx license: ' + err);
-                  res.status(500).send('Internal Server Error');
-                  return;
-                }
-                sylentxLicense = { license_key, user_id: user.id, active: true, feature_zoom: true };
-                sendLoginResponse();
-              });
-            } else {
-              sendLoginResponse();
-            }
+            sendLoginResponse();
 
             function sendLoginResponse() {
               res.json({ 
