@@ -343,12 +343,12 @@ app.use(API_PATH, marketRoutes);
 
 // active sylentx license activation key
 app.post(API_PATH + '/sylentx/activate', checkAuth, (req, res) => {
-  const { activation_key } = req.body;
+  const { activation_key } = req.query;
   const user_id = req.session.userId;
   const used_at = new Date();
   logger.info('Activating sylentx license with activation key: ' + activation_key);
 
-  db.query('SELECT * FROM sylentx_activation_keys WHERE activation_key = ? AND used_by IS NULL AND expires_at > ?', [activation_key, new Date()], (err, result) => {
+  db.query('SELECT * FROM sylentx_activation_keys WHERE activation_key = ? AND used_by IS NULL AND (expires_at IS NULL OR expires_at > ?)', [activation_key, new Date()], (err, result) => {
     if (err) {
       logger.error('Error querying sylentx_activation_keys: ' + err);
       res.status(500).send('Internal Server Error');
@@ -381,7 +381,7 @@ app.post(API_PATH + '/sylentx/activate', checkAuth, (req, res) => {
               res.status(500).send('Internal Server Error');
               return;
             }
-            res.json({ status: 'success', message: 'License activated' });
+            res.json({ status: 'success', message: 'License updated' });
           });
         } else {
           db.query('INSERT INTO sylentx_licenses (license_key, user_id, expires_at, active, feature_zoom, feature_gravity, feature_freecam, feature_noclip) VALUES (?, ?, ?, TRUE, ?, ?, ?, ?)', [activationKey.license_key, user_id, activationKey.expires_at, activationKey.feature_zoom, activationKey.feature_gravity, activationKey.feature_freecam, activationKey.feature_noclip], (err) => {
