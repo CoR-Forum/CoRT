@@ -8,14 +8,14 @@
 export const __api__base = "https://hail.thebus.top/CoRT";
 
 // New API url for cor-forum CoRT
-export const __api__cort = "https://cort.cor-forum.de/";
+export const __api__cort = "https://tools4regnum.de/";
 
 // The API url used by login and marketplace
-// check if the host is localhost, use http://localhost:8080/api/v1, else use https://api.cort.cor-forum.de/api/v1
-export const __api__market = window.location.hostname === "localhost" ? "http://localhost:8080/api/v1" : "https://cort.cor-forum.de/api/v1";
+// check if the host is localhost, use http://localhost:8080/api/v1, else use https://api.tools4regnum.de/api/v1
+export const __api__market = window.location.hostname === "localhost" ? "http://localhost:8080/api/v1" : "https://tools4regnum.de/api/v1";
 
 // Used by the trainer to filter setup submissions
-export const __api__frontsite = "https://cort.cor-forum.de";
+export const __api__frontsite = "https://tools4regnum.de";
 // Subdirectory where the HTML/JS/CSS/etc. files are placed, relative to your
 // www root with the leading '/'
 export const __api__frontsite_dir = "/";
