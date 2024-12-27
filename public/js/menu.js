@@ -208,7 +208,6 @@ let __menu_footer = `
 		<a href="https://github.com/CoR-Forum/CoRT/issues" target="_blank">Report Bugs</a>
 		<a href="https://github.com/CoR-Forum/CoRT" target="_blank">Source Code</a>
 		<a href="https://github.com/CoR-Forum/CoRT/blob/v2/CHANGELOG.md" target="_blank">Changelog</a>
-		<img height="20px" src="https://analytics.treudler.net/index.php?module=ClassicCounter&action=svg&idSite=20&period=day&mode=nb_actions">
 		<br>		<a href="/imprint.html">${_("Imprint")}</a>
 
 `;
