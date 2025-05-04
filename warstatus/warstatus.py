@@ -26,11 +26,10 @@ from urllib.request import urlopen
 
 from bs4 import BeautifulSoup
 
-# File where to dump the status
-outfile = "../public/data/warstatus/warstatus.json"
-stats_db_file = "stats/events.sqlite"
-stats_outfile = "../public/data/warstatus/stats/statistics.json"
-stats_outfile_events = "../public/data/warstatus/stats/allevents.json"
+import sqltools
+from sqltools import db_connect, sqljson
+import stats
+
 base_url = "https://www.championsofregnum.com/"
 # Use True to allow unconditional successful runtime for debugging
 # It propagates to stats.generate as well
@@ -102,9 +101,10 @@ def main():
         events_log = []
         timestamp = int(datetime.now(timezone.utc).timestamp())
 
-        if os.path.exists(outfile):
-            with open(outfile, "r") as jsonfile:
-                old_status = json.load(jsonfile)
+        mysql = db_connect.connect()
+        prev_status = sqltools.sqljson.get(mysql, "warstatus")
+        if prev_status is not None:
+                old_status = json.loads(prev_status)
                 if "events_log" in old_status:
                     events_log = copy.deepcopy(old_status["events_log"])
 
@@ -114,7 +114,7 @@ def main():
             if "forts" in failure and "gems" in failure:
                 status = old_status
                 status["failed"] = {"status": "fatal", "debug": json.dumps(failure)}
-                writer(json.dumps(status), outfile)
+                sqltools.sqljson.put(mysql, "warstatus", json.dumps(status))
                 if not debug_mode:
                     sys.exit(1)
             elif not "forts" in failure:
@@ -225,44 +225,8 @@ def main():
 
         status["generated"] = str(timestamp)
 
-        writer(json.dumps(status), outfile)
-
-        # Make statistics non mandatory
-        try:
-            # If it's our first run, avoid bogus stats.
-            if not debug_mode and len(old_status) == 0:
-                sys.exit(0)
-            import stats.generate
-            st, ev = stats.generate.statistics(status["events_log"],
-                                               stats_db_file,
-                                               force_rewrite = debug_mode)
-            writer(st, stats_outfile)
-            writer(ev, stats_outfile_events)
-        except Exception as e:
-            print(traceback.format_exc())
-            sys.exit(1)
-
-def writer(data, fname):
-    with open(fname, "w") as f:
-        f.write(data)
-    with gzip.open(fname + ".gz", "wb") as f:
-        f.write(data.encode())
-
-
-try:
-    main()
-except Exception as err:
-    # NGE's site totally not available
-    print(traceback.format_exc())
-    # Keep old status to help recovery later
-    old_status = {}
-    if os.path.exists(outfile):
-        with open(outfile, "r") as jsonfile:
-            old_status = json.load(jsonfile)
-            # Don't rewrite every minute to allow caching if the error is still
-            # the same
-            if "failed" in old_status and old_status["failed"]["debug"] == str(err):
-                sys.exit(1)
-    old_status["failed"] = {"status": "fatal", "debug": json.dumps(str(err))}
-    writer(json.dumps(old_status), outfile)
-
+        # Write a new warstatus
+        sqltools.sqljson.put(mysql, "warstatus", json.dumps(status))
+        # Write all stats and events
+        stats.statistics(status["events_log"], mysql)
+main()

@@ -5,7 +5,7 @@
 // the pull!
 
 // The root where all API files can be found
-export const __api__base = "https://hail.thebus.top/CoRT";
+export const __api__base = "http://192.168.1.200/test/CoRT/public/";
 
 // New API url for cor-forum CoRT
 export const __api__cort = "https://tools4regnum.de/";
@@ -23,7 +23,7 @@ export const __api__frontsite_dir = "/";
 export const __api__urls = {
 	"submit_trainer": `${__api__base}/collect/submit.php`,
 	"trainer_data": `${__api__base}/collect/data.txt`,
-	"events": `${__api__base}/warstatus/stats/allevents.json`,
-	"stats": `${__api__base}/warstatus/stats/statistics.json`,
-	"wstatus": `${__api__base}/warstatus/warstatus.json`
+	"events": `${__api__base}/api/api.php?type=events`,
+	"stats": `${__api__base}/api/api.php?type=statistics`,
+	"wstatus": `${__api__base}/api/api.php?type=warstatus`
 };

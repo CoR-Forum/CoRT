@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2022-2024 mascal
+# Copyright (c) 2022-2025 mascal
 #
 # CoRT is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -17,39 +17,20 @@
 
 from datetime import datetime
 import json
-import sqlite3
 import sys
 from timeit import default_timer as timer
 
-db_schema = """
-create table if not exists events (
-    date integer not null,
-    name text not null,
-    location text not null,
-    owner text not null,
-    type text not null
-);
-"""
+import MySQLdb
+from sqltools import sqljson
 
-def statistics(events, db_file, force_rewrite = False):
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-    except Exception as e:
-        print("Failed to create a database connection to", db_file, ":", e)
-        sys.exit(1)
+def statistics(events, mysql):
 
-    conn.row_factory = sqlite3.Row
-    sql = conn.cursor()
-    try:
-        sql.executescript(db_schema)
-    except Exception as e:
-        print("Failed to create db: ", e)
-        sys.exit(1)
+    mysql_cursor = mysql.cursor()
 
     insert_queries = []
-    sql.execute("select max(date) from events limit 1;")
-    latest_recorded_event = sql.fetchone()[0]
+    mysql.query("select max(date) from events limit 1;")
+    r = mysql.store_result()
+    latest_recorded_event = r.fetch_row()[0][0]
     if latest_recorded_event == None:
         latest_recorded_event = 0 # the db is empty
 
@@ -58,31 +39,31 @@ def statistics(events, db_file, force_rewrite = False):
             continue
         # Remove fort numbers
         event["name"] = event["name"].rsplit(' ', 1)[0]
-        insert_queries.append([event["date"], event["name"], event["location"],
-                              event["owner"], event["type"]])
+        insert_queries.append((event["date"], event["name"], event["location"],
+                              event["owner"], event["type"]))
 
-    if ( len(insert_queries) > 0 and not force_rewrite ) or force_rewrite:
-        sql.executemany("insert into events values(?, ?, ?, ?, ?)", insert_queries)
-        conn.commit()
+    if len(insert_queries) > 0:
+        mysql_cursor.executemany("""insert into events values(NULL, %s, %s, %s, %s, %s)""", insert_queries)
+        mysql.commit()
         start_time = timer()
         now = datetime.now()
         days = [7, 30, 90]
 
         # Optimise queries by using only the needed subsets of the table
         report_mints = int(now.timestamp()) - (max(days) * 24 * 3600)
-        sql.execute(f"""create temporary table report as
+        mysql.query(f"""create temporary table report as
                       select * from events where date >= {report_mints} and type != "relic";""")
-        sql.execute(f"""create temporary table reportforts as
+        mysql.query(f"""create temporary table reportforts as
                       select * from report where type = "fort";""")
-        sql.execute(f"""create temporary table reportwalls as
+        mysql.query(f"""create temporary table reportwalls as
                       select * from reportforts where name like "Great Wall of %";""")
-        sql.execute(f"""create temporary table reportgems as
+        mysql.query(f"""create temporary table reportgems as
                       select * from report where type = "gem" and location != owner;""")
 
         full_report = [{"generated": int(now.timestamp())}]
         for day in days:
             seconds_ago = int(now.timestamp()) - (day * 24 * 3600)
-            reporter = Reporter(conn, seconds_ago)
+            reporter = Reporter(mysql, seconds_ago)
             full_report.append(reporter.generate_stats())
             if day == max(days):
                 full_report[0]["activity"] = reporter.get_activity()
@@ -97,7 +78,8 @@ def statistics(events, db_file, force_rewrite = False):
         end_time = timer()
         full_report[0]["generation_time"] = end_time - start_time;
 
-        return [json.dumps(full_report), json.dumps(reporter.dump_events())]
+        sqljson.put(mysql, "statistics", json.dumps(full_report))
+        sqljson.put(mysql, "events", json.dumps(reporter.dump_events()))
 
 
 
@@ -105,14 +87,14 @@ class Reporter(object):
 
     def __init__(self, conn, lastxseconds):
         self.conn = conn
-        self.sql = self.conn.cursor()
+        self.sql = self.conn.cursor(MySQLdb.cursors.DictCursor)
         self.startfrom = lastxseconds
         self.stats = {"Alsius": {}, "Ignis": {}, "Syrtis": {}}
         self.sample_days = None
 
     def get_oldest_event(self):
         # Ensure proper average value if we've less than self.startfrom days of data
-        self.sql.execute(f"""select (unixepoch("now") - min(date)) / (24 * 3600) as days
+        self.sql.execute(f"""select (UNIX_TIMESTAMP() - min(date)) / (24 * 3600) as days
                              from report
                              where date >= {self.startfrom};""")
         self.sample_days = self.sql.fetchone()["days"]
@@ -124,8 +106,8 @@ class Reporter(object):
         if self.sample_days is None:
             self.get_oldest_event()
         def query(condition, sign=""):
-            return f"""select owner, strftime("%H", time(date, 'unixepoch')) as time,
-                       {sign} cast(count (rowid) as float) / {self.sample_days} as average
+            return f"""select owner, DATE_FORMAT(FROM_UNIXTIME(date), "%H") as time,
+                       {sign} cast(count(rowid) as float) / {self.sample_days} as average
                        from reportforts
                        where owner {condition} location
                        group by owner, time
@@ -145,7 +127,7 @@ class Reporter(object):
         if self.sample_days is None:
             self.get_oldest_event()
         def query(condition, sign=""):
-            return f"""select owner, strftime("%H", time(date, 'unixepoch')) as time,
+            return f"""select owner, DATE_FORMAT(FROM_UNIXTIME(date), "%H") as time,
                        {sign} cast(count(rowid) as float) / {self.sample_days} as average
                        from reportwalls
                        where owner {condition} location
@@ -163,7 +145,7 @@ class Reporter(object):
 
     def get_gems(self):
         gems = {"Alsius": [0] * 24, "Ignis": [0] * 24, "Syrtis": [0] * 24}
-        self.sql.execute(f"""select owner, strftime("%H", time(date, 'unixepoch')) as time,
+        self.sql.execute(f"""select owner,  date_format(from_unixtime(date), "%H") as time,
                              count(rowid) as count
                              from reportgems
                              group by owner, time;""")
@@ -174,7 +156,7 @@ class Reporter(object):
 
     def get_wishes(self):
         wishes = {"Alsius": [0] * 24, "Ignis": [0] * 24, "Syrtis": [0] * 24}
-        self.sql.execute(f"""select location, strftime("%H", time(date, 'unixepoch')) as time,
+        self.sql.execute(f"""select location,  date_format(from_unixtime(date), "%H") as time,
                              count(rowid) as count
                              from report
                              where type="wish"
@@ -191,6 +173,8 @@ class Reporter(object):
                              and location = "{realm}"
                              order by date desc limit 1""")
         r = self.sql.fetchone()
+        if r is None:
+            return None
         return r["date"]
 
     def get_fortsheld(self):
@@ -294,7 +278,7 @@ class Reporter(object):
                 self.stats[realm]["forts"]["captured"] + self.stats[realm]["forts"]["recovered"]
 
         # Get most captured forts by realm
-        self.sql.execute(f"""select  owner as realm, name, count(name) as count
+        self.sql.execute(f"""select owner as realm, name, count(name) as count
                              from reportforts
                              where owner != location
                              and date >= {self.startfrom}
@@ -353,7 +337,7 @@ class Reporter(object):
         # use 3 days max for the events
         self.sql.execute(f"""select *
                              from report
-                             where date > unixepoch() - 3 * 24 * 3600
+                             where date > UNIX_TIMESTAMP() - 3 * 24 * 3600
                              order by date desc""")
         output = [{"generated": int(datetime.now().timestamp())}]
         for r in self.sql.fetchall():

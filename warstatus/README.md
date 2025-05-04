@@ -18,17 +18,34 @@ statistics.
 
 ## Requirements
 
-- Python 3 (with beautifulsoup4; `python3-bs4` in debian packages). Unlike
-  `/collect` written in PHP, I chose python because `warstatus.py` needs to run
-  every minute, something that is rarely proposed by standard webhosting offers
-  and is a call for using a VPS. Also I'm more fluent in python than PHP
-  nowadays, and has almost all the batteries included for the job.
+- Python.  Unlike `/collect` written in PHP, I chose python because
+  `warstatus.py` needs to run every minute, something that is rarely proposed
+  by standard webhosting offers and is a call for using a VPS. Also I'm more
+  fluent in python than PHP nowadays, and has almost all the batteries included
+  for the job.
+- MySQL
+- The following python modules:
+    - beautifulsoup4; `python3-bs4` in debian packages
+    - MySQLdb; ` python3-mysqldb` in debian packages
+- Sqlite3, for importing the current database
 - A server running Linux (it will work on Windows through different means but I
   don't use it), performance and storage doesn't matter (it currently runs on
   1CPU/512MB RAM/10G SSD VPS!)
 - A web server that is able to serve static files and where CORS is enabled
   (see https://enable-cors.org/server.html), **unless** you serve CoRT and this
   "API endpoint" (*ahem*) on the same domain
+
+## MySQL setup
+
+Note that the PHP API code needs to access to `secrets.ini` in that directory.
+
+- Create a mysql user and a `cort` database. The created user should be granted
+  all privileges on the `cort` database
+- Copy `secrets.ini.example` to `secrets.ini`
+- Change the appropriate values in `secrets.ini`
+- Run `migrate/migrate.sh` to import the current sqlite database into your MySQL one.
+  **BEWARE** this script assumes a local MySQL server is used.
+
 
 ## Deployment
 
@@ -51,7 +68,8 @@ sensitive content (credentials etc.).
 	```
 4. Modify `js/api_url.js` with your own urls
 
-That's it.
+That's it. The _Last Events_ part of the Warstatus may contain extra events
+generated at the database creation. They will vanish overtime.
 
 ## Response Format
 
